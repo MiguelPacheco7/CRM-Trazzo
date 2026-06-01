@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trazzo CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F2EDE4;
+            /* Beige background from design */
+        }
+
+        .nav-item-active {
+            background-color: #2D2D2D;
+            color: white;
+            border-radius: 9999px;
+        }
+
+        .dark .nav-item-active {
+            background-color: #F2EDE4;
+            color: #1a1a1a;
+        }
+
+        .card {
+            background-color: #EDE8DE;
+            border-radius: 1.5rem;
+        }
+
+        .dark .card {
+            background-color: #2D2D2D;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Inverter ícones no modo escuro se necessário */
+        .dark img[src*="icons8"] {
+            filter: invert(1);
+        }
+    </style>
+</head>
+
+<body
+    class="min-h-screen text-[#2D2D2D] bg-[#F2EDE4] dark:bg-[#1a1a1a] dark:text-[#f3f4f6] transition-colors duration-300">
+
+    <nav
+        class="flex items-center justify-between px-8 py-4 bg-white/50 dark:bg-[#1a1a1a]/80 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
+        <div class="flex items-center gap-8">
+            <a href="javascript:location.reload()"
+                class="text-2xl font-bold hover:opacity-70 transition-opacity">Trazzo</a>
+            <div class="bg-white dark:bg-[#2D2D2D] rounded-full px-2 py-1 flex gap-2 shadow-sm border border-gray-100 dark:border-white/10">
+                <a href="/"
+                    class="px-6 py-2 text-sm font-medium {% if request.url.path == '/' %}nav-item-active{% endif %}">Dashboard</a>
+                <a href="/vendas"
+                    class="px-6 py-2 text-sm font-medium {% if request.url.path == '/vendas' %}nav-item-active{% endif %}">Vendas</a>
+                <a href="/clientes"
+                    class="px-6 py-2 text-sm font-medium {% if request.url.path == '/clientes' %}nav-item-active{% endif %}">Clientes</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar('settingsSidebar')" class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors">
+                <img src="https://img.icons8.com/material-outlined/24/000000/settings.png" alt="Settings">
+            </button>
+            <button onclick="toggleSidebar('notificationsSidebar')" class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full relative transition-colors">
+                <img src="https://img.icons8.com/material-outlined/24/000000/appointment-reminders.png"
+                    alt="Notifications">
+                {% if notifications and notifications|length > 0 %}
+                <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                {% endif %}
+            </button>
+            <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
+                <img src="https://i.pravatar.cc/100" alt="Profile">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebars -->
+    <div id="sidebarOverlay" onclick="closeAllSidebars()"
+        class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60] hidden transition-opacity duration-300 opacity-0">
+    </div>
+
+    <!-- Notifications Sidebar -->
+    <div id="notificationsSidebar"
+        class="fixed top-0 right-0 h-full w-80 bg-[#F2EDE4] dark:bg-[#1a1a1a] shadow-2xl z-[70] transform translate-x-full transition-transform duration-300 ease-in-out p-8 border-l dark:border-white/10">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="text-2xl font-bold">Notificações</h3>
+            <button onclick="toggleSidebar('notificationsSidebar')" class="text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+        </div>
+        <div class="space-y-4">
+            {% if notifications %}
+            {% for notif in notifications %}
+            <div
+                class="bg-white dark:bg-[#2D2D2D] p-4 rounded-2xl shadow-sm border-l-4 {% if notif.type == 'danger' %}border-red-500{% elif notif.type == 'warning' %}border-orange-400{% else %}border-blue-400{% endif %}">
+                <div class="font-bold text-sm mb-1 text-black dark:text-white">{{ notif.title }}</div>
+                <div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-2">{{ notif.message }}</div>
+                {% if notif.link %}
+                <a href="{{ notif.link }}" class="text-[10px] font-bold text-blue-500 hover:underline uppercase tracking-wider">Ver registro →</a>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-12 text-gray-400 dark:text-gray-500">
+                <p class="text-sm">Nenhuma notificação nova.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Settings Sidebar -->
+    <div id="settingsSidebar"
+        class="fixed top-0 right-0 h-full w-80 bg-[#F2EDE4] dark:bg-[#1a1a1a] shadow-2xl z-[70] transform translate-x-full transition-transform duration-300 ease-in-out p-8 border-l dark:border-white/10">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="text-2xl font-bold">Configurações</h3>
+            <button onclick="toggleSidebar('settingsSidebar')" class="text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+        </div>
+        <div class="space-y-6">
+            <div class="bg-white dark:bg-[#2D2D2D] p-6 rounded-2xl shadow-sm">
+                <h4 class="font-bold text-sm mb-4">Perfil</h4>
+                <div class="space-y-3">
+                    <button class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Editar
+                        perfil</button>
+                    <button class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Alterar
+                        senha</button>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-[#2D2D2D] p-6 rounded-2xl shadow-sm">
+                <h4 class="font-bold text-sm mb-4 text-black dark:text-white">Sistema</h4>
+                <div class="space-y-3">
+                    <button onclick="toggleDarkMode()"
+                        class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Alternar
+                        Modo Escuro</button>
+                    <button class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Idioma:
+                        Português</button>
+                </div>
+            </div>
+            <button
+                class="w-full py-4 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-2xl font-bold text-sm hover:opacity-90 transition-opacity">Sair
+                da conta</button>
+        </div>
+    </div>
+
+    <main class="p-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[200] p-4">
+        <div class="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-white/20 dark:border-white/10 transform transition-all scale-95 opacity-0 duration-300" id="deleteModalContent">
+            <div class="text-center">
+                <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-4 text-black dark:text-white">Excluir Registro?</h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+                    Você está prestes a excluir <span id="deleteItemName" class="font-bold text-black dark:text-white"></span>. 
+                    <br>Esta ação será permanente em:
+                    <span id="deleteCountdown" class="block text-4xl font-black text-red-500 mt-2">10</span>
+                </p>
+                <div class="flex flex-col gap-3">
+                    <button id="cancelDeleteBtn" class="w-full py-4 bg-[#B7F4B0] dark:bg-[#B7F4B0] text-black rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg">
+                        Reverter Ação (Manter)
+                    </button>
+                    <button id="forceDeleteBtn" class="w-full py-3 text-gray-400 dark:text-gray-500 hover:text-red-500 text-sm font-medium transition-colors">
+                        Excluir agora
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" class="fixed bottom-8 right-8 bg-[#2D2D2D] text-white px-8 py-4 rounded-2xl shadow-2xl z-[200] translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
+        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <span id="successToastMsg" class="font-bold text-sm">Excluído com sucesso!</span>
+    </div>
+
+    {% block scripts %}{% endblock %}
+
+    <script>
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        }
+        
+        function toggleSidebar(id) {
+            const sidebar = document.getElementById(id);
+            const overlay = document.getElementById('sidebarOverlay');
+            const isHidden = sidebar.classList.contains('translate-x-full');
+
+            // Close all first
+            closeAllSidebars();
+
+            if (isHidden) {
+                sidebar.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                }, 10);
+            }
+        }
+
+        function closeAllSidebars() {
+            const sidebars = ['notificationsSidebar', 'settingsSidebar'];
+            const overlay = document.getElementById('sidebarOverlay');
+
+            sidebars.forEach(id => {
+                document.getElementById(id).classList.add('translate-x-full');
+            });
+
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+
+</html>

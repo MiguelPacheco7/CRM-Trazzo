@@ -1,0 +1,385 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <div class="flex items-center gap-6">
+        <h2 class="text-3xl font-bold text-black dark:text-white">Vendas</h2>
+        <div class="flex bg-gray-100 dark:bg-[#2D2D2D] rounded-full p-1 border dark:border-white/10">
+            <a href="/vendas?filter=all" class="px-6 py-1.5 rounded-full text-sm font-bold transition-all {% if current_filter == 'all' %}bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a]{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white{% endif %}">
+                Todos
+            </a>
+            <a href="/vendas?filter=month" class="px-6 py-1.5 rounded-full text-sm font-bold transition-all {% if current_filter == 'month' %}bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a]{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white{% endif %}">
+                Mês Atual
+            </a>
+        </div>
+    </div>
+    <button onclick="document.getElementById('addLeadModal').classList.remove('hidden')" class="bg-white dark:bg-[#2D2D2D] px-6 py-2 rounded-full font-bold shadow-sm border border-gray-100 dark:border-white/10 flex items-center gap-2 text-black dark:text-white transition-colors hover:bg-gray-50 dark:hover:bg-white/5">
+        <span class="text-xl">+</span> Novo lead
+    </button>
+</div>
+
+<div class="flex gap-6 overflow-x-auto pb-8 custom-scrollbar">
+    {% for column in ['Lead', 'Negociação', 'Não fechou', 'Fechado'] %}
+    <div class="flex-shrink-0 w-80">
+        <h3 class="text-2xl font-bold mb-6 px-2 text-black dark:text-white">{{ column }}</h3>
+        <div class="space-y-4 min-h-[600px] bg-white/30 dark:bg-black/20 rounded-[2rem] p-2 border border-transparent dark:border-white/5">
+            {% for lead in leads if lead.status == column %}
+            <div id="card-{{ lead.id }}" class="bg-[#EDE8DE] dark:bg-[#2D2D2D] rounded-[2rem] p-6 shadow-sm border border-white/50 dark:border-white/10 transition-all duration-300">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-xl font-bold leading-tight text-black dark:text-white">{{ lead.name }}</h4>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ lead.company }}</p>
+                            </div>
+                            <div class="mr-2">
+                                <button onclick="confirmDelete('{{ lead.id }}', '{{ lead.name }}')" class="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors p-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <img src="{{ lead.photo_path or 'https://i.pravatar.cc/100?u=' ~ lead.id }}" class="w-16 h-16 rounded-full border-4 border-white dark:border-[#1a1a1a] shadow-sm object-cover">
+                </div>
+                
+                <div class="space-y-3 mb-6">
+                    <div class="bg-white/50 dark:bg-white/10 rounded-full px-4 py-1 text-sm text-blue-600 dark:text-blue-400 font-medium">@{{ lead.social_media or 'usuario' }}</div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-black dark:text-gray-300">{{ lead.phone or '(00) 00000 0000' }}</span>
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase 
+                            {% if lead.temperature == 'Quente' %}bg-orange-500 text-white
+                            {% elif lead.temperature == 'Morno' %}bg-yellow-400 text-black
+                            {% else %}bg-blue-300 text-white{% endif %}">
+                            lead {{ lead.temperature|lower }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if lead.problems %}
+                <div class="bg-[#D9534F] text-white rounded-2xl p-4 mb-3 text-sm">
+                    <strong class="block mb-1">Problemas:</strong>
+                    {{ lead.problems }}
+                </div>
+                {% endif %}
+
+                {% if lead.solutions %}
+                <div class="bg-[#B7F4B0] text-black rounded-2xl p-4 mb-3 text-sm">
+                    <strong class="block mb-1">Solução:</strong>
+                    {{ lead.solutions }}
+                </div>
+                {% endif %}
+
+                <div class="bg-[#D9D1C2] dark:bg-[#1a1a1a] rounded-2xl p-4 text-sm mb-4 text-[#2D2D2D] dark:text-gray-300">
+                    <strong class="block mb-1 text-black dark:text-white">Observações:</strong>
+                    {{ lead.observations or 'Sem observações.' }}
+                </div>
+
+                <div class="flex gap-2">
+                    <button 
+                        onclick="openEditLeadModal(this)"
+                        data-id="{{ lead.id }}"
+                        data-name="{{ lead.name }}"
+                        data-company="{{ lead.company }}"
+                        data-social="{{ lead.social_media }}"
+                        data-phone="{{ lead.phone }}"
+                        data-type="{{ lead.project_type }}"
+                        data-value="{{ lead.value }}"
+                        data-temp="{{ lead.temperature }}"
+                        data-problems="{{ lead.problems }}"
+                        data-solutions="{{ lead.solutions }}"
+                        data-obs="{{ lead.observations }}"
+                        data-start="{{ lead.start_date.strftime('%Y-%m-%d') if lead.start_date else '' }}"
+                        data-end="{{ lead.end_date.strftime('%Y-%m-%d') if lead.end_date else '' }}"
+                        class="flex-1 bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 transition-colors rounded-full py-2 text-xs font-bold shadow-sm text-black dark:text-white">
+                        Editar
+                    </button>
+                    <form action="/update_lead/{{ lead.id }}" method="post" class="flex-1">
+                        <select name="status" onchange="this.form.submit()" class="w-full bg-white/80 dark:bg-white/10 rounded-full px-4 py-2 text-xs font-bold border-none shadow-sm cursor-pointer text-black dark:text-white dark:[&>option]:bg-[#2D2D2D]">
+                            <option value="Lead" {% if lead.status == 'Lead' %}selected{% endif %}>Mudar status</option>
+                            <option value="Negociação" {% if lead.status == 'Negociação' %}selected{% endif %}>Negociação</option>
+                            <option value="Não fechou" {% if lead.status == 'Não fechou' %}selected{% endif %}>Não fechou</option>
+                            <option value="Fechado" {% if lead.status == 'Fechado' %}selected{% endif %}>Fechado</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Add Lead -->
+<div id="addLeadModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-[100]">
+    <div class="bg-[#F2EDE4] dark:bg-[#1a1a1a] rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl border border-white/20 dark:border-white/10 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-8 sticky top-0 bg-[#F2EDE4] dark:bg-[#1a1a1a] z-10 py-2">
+            <h3 class="text-3xl font-bold text-black dark:text-white">Novo lead</h3>
+            <button onclick="document.getElementById('addLeadModal').classList.add('hidden')" class="text-gray-500 hover:text-black dark:hover:text-white transition-colors">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form action="/add_lead" method="post" enctype="multipart/form-data" class="space-y-5">
+            <div class="grid grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Nome completo</label>
+                    <input type="text" name="name" required class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Empresa / Projeto</label>
+                    <input type="text" name="company" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Rede Social</label>
+                    <input type="text" name="social_media" placeholder="@usuario" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Telefone</label>
+                    <input type="text" name="phone" placeholder="(31) 98989 8989" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Tipo de Projeto</label>
+                    <select name="project_type" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                        <option value="Marca autêntica">Marca autêntica</option>
+                        <option value="Posicionamento">Posicionamento</option>
+                        <option value="Consultoria">Consultoria</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Valor Estimado (R$)</label>
+                    <input type="number" step="0.01" name="value" placeholder="20000.00" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Foto de Perfil</label>
+                <input type="file" name="photo" accept="image/*" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Temperatura</label>
+                <div class="flex gap-3">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="temperature" value="Quente" class="hidden peer">
+                        <div class="text-center py-3 rounded-2xl bg-white dark:bg-[#2D2D2D] dark:text-white border-2 border-transparent peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/20 font-bold text-sm transition-all">Quente</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="temperature" value="Morno" checked class="hidden peer">
+                        <div class="text-center py-3 rounded-2xl bg-white dark:bg-[#2D2D2D] dark:text-white border-2 border-transparent peer-checked:border-yellow-400 peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-900/20 font-bold text-sm transition-all">Morno</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="temperature" value="Frio" class="hidden peer">
+                        <div class="text-center py-3 rounded-2xl bg-white dark:bg-[#2D2D2D] dark:text-white border-2 border-transparent peer-checked:border-blue-300 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/20 font-bold text-sm transition-all">Frio</div>
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] py-5 rounded-2xl font-bold text-lg mt-4 hover:opacity-90 transition-opacity shadow-lg">Cadastrar lead</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Edit Lead -->
+<div id="editLeadModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-[100]">
+    <div class="bg-[#F2EDE4] dark:bg-[#1a1a1a] rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl border border-white/20 dark:border-white/10 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-8 sticky top-0 bg-[#F2EDE4] dark:bg-[#1a1a1a] z-10 py-2">
+            <h3 class="text-3xl font-bold text-black dark:text-white">Editar Lead</h3>
+            <button onclick="document.getElementById('editLeadModal').classList.add('hidden')" class="text-gray-500 hover:text-black dark:hover:text-white transition-colors">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form id="editLeadForm" method="post" enctype="multipart/form-data" class="space-y-5">
+            <div class="grid grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Nome completo</label>
+                    <input type="text" name="name" id="edit_name" required class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Empresa / Projeto</label>
+                    <input type="text" name="company" id="edit_company" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Rede Social</label>
+                    <input type="text" name="social_media" id="edit_social" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Telefone</label>
+                    <input type="text" name="phone" id="edit_phone" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Tipo de Projeto</label>
+                    <select name="project_type" id="edit_type" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                        <option value="Marca autêntica">Marca autêntica</option>
+                        <option value="Posicionamento">Posicionamento</option>
+                        <option value="Consultoria">Consultoria</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Valor Estimado (R$)</label>
+                    <input type="number" step="0.01" name="value" id="edit_value" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Data Início</label>
+                    <input type="date" name="start_date" id="edit_start" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Data Fim</label>
+                    <input type="date" name="end_date" id="edit_end" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Atualizar Foto</label>
+                <input type="file" name="photo" accept="image/*" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Problemas</label>
+                <textarea name="problems" id="edit_problems" rows="2" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none resize-none"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Soluções</label>
+                <textarea name="solutions" id="edit_solutions" rows="2" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none resize-none"></textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Observações</label>
+                <textarea name="observations" id="edit_observations" rows="2" class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none resize-none"></textarea>
+            </div>
+            <button type="submit" class="w-full bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] py-5 rounded-2xl font-bold text-lg mt-4 hover:opacity-90 transition-opacity shadow-lg">Salvar Alterações</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let deleteTimer = null;
+let countdownInterval = null;
+let currentDeleteId = null;
+
+function openEditLeadModal(btn) {
+    const data = btn.dataset;
+    const form = document.getElementById('editLeadForm');
+    form.action = `/update_lead/${data.id}`;
+    
+    document.getElementById('edit_name').value = data.name;
+    document.getElementById('edit_company').value = data.company === 'None' ? '' : data.company;
+    document.getElementById('edit_social').value = data.social === 'None' ? '' : data.social;
+    document.getElementById('edit_phone').value = data.phone === 'None' ? '' : data.phone;
+    document.getElementById('edit_type').value = data.type;
+    document.getElementById('edit_value').value = data.value;
+    document.getElementById('edit_problems').value = data.problems === 'None' ? '' : data.problems;
+    document.getElementById('edit_solutions').value = data.solutions === 'None' ? '' : data.solutions;
+    document.getElementById('edit_observations').value = data.obs === 'None' ? '' : data.obs;
+    document.getElementById('edit_start').value = data.start;
+    document.getElementById('edit_end').value = data.end;
+    
+    document.getElementById('editLeadModal').classList.remove('hidden');
+}
+
+function confirmDelete(id, name) {
+    currentDeleteId = id;
+    const modal = document.getElementById('deleteConfirmModal');
+    const content = document.getElementById('deleteModalContent');
+    const nameEl = document.getElementById('deleteItemName');
+    const countdownEl = document.getElementById('deleteCountdown');
+    
+    nameEl.innerText = name;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Trigger animation
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+    }, 10);
+
+    let timeLeft = 10;
+    countdownEl.innerText = timeLeft;
+    
+    // Limpa timers anteriores se existirem
+    clearInterval(countdownInterval);
+    clearTimeout(deleteTimer);
+
+    countdownInterval = setInterval(() => {
+        timeLeft--;
+        countdownEl.innerText = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(countdownInterval);
+            executeDelete(currentDeleteId);
+        }
+    }, 1000);
+
+    // Botão Reverter
+    document.getElementById('cancelDeleteBtn').onclick = () => {
+        clearInterval(countdownInterval);
+        clearTimeout(deleteTimer);
+        closeDeleteModal();
+    };
+
+    // Botão Forçar Exclusão
+    document.getElementById('forceDeleteBtn').onclick = () => {
+        clearInterval(countdownInterval);
+        executeDelete(currentDeleteId);
+    };
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteConfirmModal');
+    const content = document.getElementById('deleteModalContent');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+}
+
+async function executeDelete(id) {
+    closeDeleteModal();
+    
+    // Feedback visual imediato
+    const card = document.getElementById(`card-${id}`);
+    if (card) {
+        card.style.opacity = '0.5';
+        card.style.filter = 'grayscale(1)';
+    }
+
+    try {
+        const response = await fetch(`/delete_lead/${id}`, { method: 'POST' });
+        if (response.ok) {
+            showSuccessToast("Lead excluído com sucesso!");
+            if (card) {
+                card.style.transform = 'scale(0.8)';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.remove();
+                    window.location.reload(); 
+                }, 300);
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao excluir:', error);
+        if (card) {
+            card.style.opacity = '1';
+            card.style.filter = 'none';
+        }
+    }
+}
+
+function showSuccessToast(msg) {
+    const toast = document.getElementById('successToast');
+    const msgEl = document.getElementById('successToastMsg');
+    msgEl.innerText = msg;
+    toast.classList.remove('translate-y-20', 'opacity-0');
+    setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+    }, 3000);
+}
+</script>
+{% endblock %}

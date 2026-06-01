@@ -1,0 +1,444 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="grid grid-cols-12 gap-6">
+    <!-- Conversão -->
+    <div class="col-span-5 bg-[#FDF8E1] dark:bg-[#2D2D2D] rounded-[2rem] p-8 shadow-sm border dark:border-white/10">
+        <div class="flex justify-between items-start mb-8">
+            <h2 class="text-3xl font-bold text-black dark:text-white">Conversão</h2>
+            <div class="bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] px-4 py-1 rounded-full text-sm font-bold">Ano</div>
+        </div>
+        <div class="text-[10rem] font-bold leading-none mb-4 text-black dark:text-[#B7F4B0]">{{ conversion_rate|int }}%</div>
+        <div class="flex gap-8 text-sm text-gray-600 dark:text-gray-400">
+            <span>Fechados <strong class="text-black dark:text-white">{{ leads_fechados }}</strong></span>
+            <span>Perdidos <strong class="text-black dark:text-white">{{ leads_perdidos }}</strong></span>
+        </div>
+        <div class="flex gap-2 mt-8">
+            <span class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10">Posicionamento</span>
+            <span class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10">Consultoria</span>
+            <span class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10">Marca autêntica</span>
+        </div>
+    </div>
+
+    <!-- Leads -->
+    <div class="col-span-3 bg-[#B7F4B0] dark:bg-[#2D2D2D] rounded-[2rem] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden border dark:border-white/10">
+        <div class="flex justify-between items-start z-10">
+            <h2 class="text-3xl font-bold text-black dark:text-white">Leads</h2>
+            <div class="flex bg-black/10 dark:bg-white/10 rounded-full p-1">
+                <button onclick="toggleLeads('month')" id="btnLeadsMonth" class="px-3 py-1 rounded-full text-[10px] font-bold transition-all bg-white text-black shadow-sm">Mês</button>
+                <button onclick="toggleLeads('year')" id="btnLeadsYear" class="px-3 py-1 rounded-full text-[10px] font-bold transition-all text-black/60 dark:text-white/60">Ano</button>
+            </div>
+        </div>
+        
+        <div class="z-10">
+            <div id="leadsValue" class="text-8xl font-bold transition-all duration-300 text-black dark:text-[#B7F4B0]">
+                {{ (monthly_leads or [])[now.month - 1] if monthly_leads else 0 }}
+            </div>
+            <div id="leadsLabel" class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                Leads em {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][now.month - 1] }}
+            </div>
+        </div>
+
+        <!-- Decorative background circle -->
+        <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/20 dark:bg-[#B7F4B0]/10 rounded-full"></div>
+    </div>
+
+    <!-- Faturamento Donut -->
+    <div class="col-span-4 bg-white dark:bg-[#2D2D2D] rounded-[2rem] p-8 shadow-sm border dark:border-white/10">
+        <div class="flex justify-end gap-2 mb-4">
+            <button onclick="toggleDonut('volume')" id="btnDonutVolume" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs font-bold transition-all">Volume</button>
+            <button onclick="toggleDonut('revenue')" id="btnDonutRevenue" class="px-4 py-1 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-full text-xs font-bold transition-all">Faturamento</button>
+        </div>
+        <div class="relative w-56 h-56 mx-auto mb-8">
+            <!-- Chart.js Doughnut -->
+            <canvas id="revenueDonutChart"></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span id="donutTotalValue" class="text-sm font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(total_revenue or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</span>
+                <span id="donutTotalLabel" class="text-xs text-gray-500 dark:text-gray-400">Total</span>
+            </div>
+        </div>
+        <div class="space-y-4">
+            <div class="flex justify-between items-center text-sm">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-[#FF9F1C]"></div>
+                    <span class="text-gray-600 dark:text-gray-400">Posicionamento</span>
+                </div>
+                <span id="val-Posicionamento" class="font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(revenue_by_type['Posicionamento'] or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-[#FFBF69]"></div>
+                    <span class="text-gray-600 dark:text-gray-400">Marca autêntica</span>
+                </div>
+                <span id="val-Marca-autentica" class="font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(revenue_by_type['Marca autêntica'] or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-[#B7F4B0]"></div>
+                    <span class="text-gray-600 dark:text-gray-400">Consultoria</span>
+                </div>
+                <span id="val-Consultoria" class="font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(revenue_by_type['Consultoria'] or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados Chart -->
+    <div class="col-span-8 bg-white dark:bg-[#2D2D2D] rounded-[2rem] p-8 shadow-sm border dark:border-white/10">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold text-black dark:text-white">Resultados</h2>
+            <div class="flex gap-2">
+                <button onclick="updateChart('year', event)" class="px-4 py-1 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-full text-xs font-bold">1A</button>
+                <button onclick="updateChart('6m', event)" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">6M</button>
+                <button onclick="updateChart('3m', event)" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">3M</button>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <div>
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Total Acumulado</div>
+                <div class="text-2xl font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(total_revenue or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</div>
+            </div>
+            <div>
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Média por Cliente</div>
+                <div class="text-2xl font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format((total_revenue / total_clients) if total_clients > 0 else 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</div>
+            </div>
+        </div>
+        <!-- Chart.js Container -->
+        <div class="h-64 relative">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Calendário -->
+    <div class="col-span-4 bg-white dark:bg-[#2D2D2D] rounded-[2rem] p-8 shadow-sm border dark:border-white/10">
+        <h2 class="text-2xl font-bold mb-6 text-black dark:text-white">Calendário</h2>
+        <div class="grid grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            {% for month in full_calendar %}
+            <div onclick="openCalendarModal({{ loop.index0 }})" class="bg-[#F2EDE4] dark:bg-[#1a1a1a] rounded-2xl p-4 hover:bg-[#EDE8DE] dark:hover:bg-white/5 transition-colors cursor-pointer group border dark:border-white/5">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="text-sm font-bold text-black dark:text-white">{{ month.name }}</div>
+                    <div class="text-[10px] bg-white dark:bg-[#2D2D2D] px-2 py-0.5 rounded-full font-bold text-gray-500 dark:text-gray-400">{{ month['items']|length }}</div>
+                </div>
+                <div class="flex -space-x-2 overflow-hidden">
+                    {% for item in month['items'][:3] %}
+                    <img src="{{ item.photo }}" class="w-8 h-8 rounded-full border-2 border-white dark:border-[#2D2D2D] object-cover" title="{{ item.name }}">
+                    {% endfor %}
+                    {% if month['items']|length > 3 %}
+                    <div class="w-8 h-8 rounded-full border-2 border-white dark:border-[#2D2D2D] bg-white dark:bg-[#2D2D2D] flex items-center justify-center text-[10px] font-bold text-gray-400">+{{ month['items']|length - 3 }}</div>
+                    {% endif %}
+                    {% if not month['items'] %}
+                    <div class="text-[10px] text-gray-400 italic">Vazio</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Calendário Detalhado -->
+<div id="calendarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[150] p-4">
+    <div class="bg-[#F2EDE4] dark:bg-[#1a1a1a] rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl border border-white/20 dark:border-white/10 transform transition-all scale-95 opacity-0 duration-300" id="calendarModalContent">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h3 id="modalMonthName" class="text-3xl font-bold text-black dark:text-white">Janeiro</h3>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">Leads e Projetos deste mês</p>
+            </div>
+            <button onclick="closeCalendarModal()" class="text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <div id="modalItemsList" class="space-y-4 max-h-[50vh] overflow-y-auto pr-4 custom-scrollbar">
+            <!-- Items will be injected here via JS -->
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-black/5 dark:border-white/5 flex justify-end">
+            <button onclick="closeCalendarModal()" class="px-8 py-3 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-2xl font-bold text-sm hover:opacity-90 transition-opacity">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Dados do calendário injetados pelo backend
+    const calendarData = JSON.parse('{{ (full_calendar or [])|tojson | safe }}');
+
+    function openCalendarModal(monthIdx) {
+        if (!calendarData || !calendarData[monthIdx]) return;
+        const month = calendarData[monthIdx];
+        const modal = document.getElementById('calendarModal');
+        const content = document.getElementById('calendarModalContent');
+        const monthNameEl = document.getElementById('modalMonthName');
+        const itemsListEl = document.getElementById('modalItemsList');
+
+        monthNameEl.innerText = month.name;
+        itemsListEl.innerHTML = '';
+
+        if (!month.items || month.items.length === 0) {
+            itemsListEl.innerHTML = `
+                <div class="text-center py-12 text-gray-400">
+                    <p class="font-medium">Nenhum lead ou projeto registrado para ${month.name}.</p>
+                </div>
+            `;
+        } else {
+            month.items.forEach(item => {
+                const statusColor = item.status === 'Fechado' ? 'bg-green-100 text-green-700' : 
+                                  item.status === 'Negociação' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700';
+                
+                itemsListEl.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-black/5 flex items-center gap-4 hover:shadow-md transition-shadow">
+                        <img src="${item.photo}" class="w-12 h-12 rounded-full object-cover border-2 border-[#F2EDE4]">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-sm">${item.name}</h4>
+                            <p class="text-xs text-gray-500">${item.company || 'Empresa não informada'}</p>
+                        </div>
+                        <div class="px-3 py-1 rounded-full text-[10px] font-bold uppercase ${statusColor}">
+                            ${item.status}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+    }
+
+    function closeCalendarModal() {
+        const modal = document.getElementById('calendarModal');
+        const content = document.getElementById('calendarModalContent');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    let revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+            datasets: [{
+                label: 'Faturamento',
+                data: JSON.parse('{{ (monthly_revenue or [])|tojson | safe }}'),
+                borderColor: '#B7F4B0',
+                backgroundColor: 'rgba(183, 244, 176, 0.2)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#2D2D2D',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: false },
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR');
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // Gráfico de Faturamento por Tipo (Doughnut)
+    const donutCtx = document.getElementById('revenueDonutChart').getContext('2d');
+    const revenueData = JSON.parse('{{ revenue_by_type|tojson | safe }}');
+    const volumeData = JSON.parse('{{ volume_by_type|tojson | safe }}');
+    const totalRevenue = {{ total_revenue or 0 }};
+    const totalVolume = {{ total_clients or 0 }};
+    
+    let currentDonutChart = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Posicionamento', 'Marca autêntica', 'Consultoria'],
+            datasets: [{
+                data: [
+                    revenueData['Posicionamento'] || 0,
+                    revenueData['Marca autêntica'] || 0,
+                    revenueData['Consultoria'] || 0
+                ],
+                backgroundColor: ['#FF9F1C', '#FFBF69', '#B7F4B0'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '85%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let value = context.raw || 0;
+                            const isRevenue = document.getElementById('btnDonutRevenue').classList.contains('text-white');
+                            if (isRevenue) {
+                                return context.label + ': R$ ' + value.toLocaleString('pt-BR');
+                            } else {
+                                return context.label + ': ' + value + (value === 1 ? ' cliente' : ' clientes');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    function toggleDonut(type) {
+        const btnVolume = document.getElementById('btnDonutVolume');
+        const btnRevenue = document.getElementById('btnDonutRevenue');
+        const totalValueEl = document.getElementById('donutTotalValue');
+        const totalLabelEl = document.getElementById('donutTotalLabel');
+        
+        const valPos = document.getElementById('val-Posicionamento');
+        const valMarca = document.getElementById('val-Marca-autentica');
+        const valCons = document.getElementById('val-Consultoria');
+
+        if (type === 'volume') {
+            // Atualiza Gráfico
+            currentDonutChart.data.datasets[0].data = [
+                volumeData['Posicionamento'] || 0,
+                volumeData['Marca autêntica'] || 0,
+                volumeData['Consultoria'] || 0
+            ];
+            currentDonutChart.update();
+
+            // Atualiza UI
+            totalValueEl.innerText = totalVolume + (totalVolume === 1 ? ' Cliente' : ' Clientes');
+            totalLabelEl.innerText = 'Total Volume';
+            
+            valPos.innerText = volumeData['Posicionamento'] || 0;
+            valMarca.innerText = volumeData['Marca autêntica'] || 0;
+            valCons.innerText = volumeData['Consultoria'] || 0;
+
+            // Estilo Botões
+            btnVolume.classList.remove('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
+            btnVolume.classList.add('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
+            
+            btnRevenue.classList.remove('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
+            btnRevenue.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
+        } else {
+            // Atualiza Gráfico
+            currentDonutChart.data.datasets[0].data = [
+                revenueData['Posicionamento'] || 0,
+                revenueData['Marca autêntica'] || 0,
+                revenueData['Consultoria'] || 0
+            ];
+            currentDonutChart.update();
+
+            // Atualiza UI
+            totalValueEl.innerText = 'R$ ' + totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            totalLabelEl.innerText = 'Total Faturamento';
+
+            valPos.innerText = 'R$ ' + (revenueData['Posicionamento'] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            valMarca.innerText = 'R$ ' + (revenueData['Marca autêntica'] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            valCons.innerText = 'R$ ' + (revenueData['Consultoria'] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+            // Estilo Botões
+            btnRevenue.classList.remove('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
+            btnRevenue.classList.add('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
+            
+            btnVolume.classList.remove('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
+            btnVolume.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
+        }
+    }
+
+    function updateChart(period, event) {
+        let labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        let data = JSON.parse('{{ (monthly_revenue or [])|tojson | safe }}');
+        const currentMonth = new Date().getMonth(); // 0-11
+        
+        let filteredLabels = [];
+        let filteredData = [];
+        
+        if (period === 'year') {
+            filteredLabels = labels;
+            filteredData = data;
+        } else if (period === '6m') {
+            for (let i = 5; i >= 0; i--) {
+                let idx = (currentMonth - i + 12) % 12;
+                filteredLabels.push(labels[idx]);
+                filteredData.push(data[idx]);
+            }
+        } else if (period === '3m') {
+            for (let i = 2; i >= 0; i--) {
+                let idx = (currentMonth - i + 12) % 12;
+                filteredLabels.push(labels[idx]);
+                filteredData.push(data[idx]);
+            }
+        }
+        
+        revenueChart.data.labels = filteredLabels;
+        revenueChart.data.datasets[0].data = filteredData;
+        revenueChart.update();
+        
+        // Update button styles
+        if (event && event.target) {
+            event.target.parentElement.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
+                btn.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
+            });
+            event.target.classList.remove('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
+            event.target.classList.add('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
+        }
+    }
+
+    function toggleLeads(period) {
+        const valueEl = document.getElementById('leadsValue');
+        const labelEl = document.getElementById('leadsLabel');
+        const btnMonth = document.getElementById('btnLeadsMonth');
+        const btnYear = document.getElementById('btnLeadsYear');
+        
+        if (period === 'month') {
+            valueEl.innerText = '{{ (monthly_leads or [])[now.month - 1] if monthly_leads else 0 }}';
+            labelEl.innerText = 'Leads em {{ ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"][(now.month - 1) if now else 0] }}';
+            btnMonth.classList.add('bg-white', 'shadow-sm');
+            btnMonth.classList.remove('text-black/60');
+            btnYear.classList.remove('bg-white', 'shadow-sm');
+            btnYear.classList.add('text-black/60');
+        } else {
+            valueEl.innerText = '{{ total_leads or 0 }}';
+            labelEl.innerText = 'Total acumulado no ano';
+            btnYear.classList.add('bg-white', 'shadow-sm');
+            btnYear.classList.remove('text-black/60');
+            btnMonth.classList.remove('bg-white', 'shadow-sm');
+            btnMonth.classList.add('text-black/60');
+        }
+    }
+</script>
+{% endblock %}
