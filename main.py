@@ -7,6 +7,11 @@ from sqlalchemy import extract, or_
 import database as db
 from datetime import datetime, UTC
 import logging
+import os
+from dotenv import load_dotenv
+
+# Carrega variáveis de ambiente
+load_dotenv()
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -232,10 +237,6 @@ async def clientes(request: Request, db_session: Session = Depends(get_db), user
         {"clients": clients, "notifications": notifications}
     )
 
-import os
-import uuid
-import shutil
-
 UPLOAD_DIR = "static/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -281,6 +282,9 @@ async def check_projects_middleware(request: Request, call_next):
             
     response = await call_next(request)
     return response
+
+import uuid
+import shutil
 
 @app.post("/add_lead")
 async def add_lead(
@@ -420,4 +424,5 @@ async def restore_lead(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8003)
+    port = int(os.getenv("PORT", 8003))
+    uvicorn.run(app, host="0.0.0.0", port=port)

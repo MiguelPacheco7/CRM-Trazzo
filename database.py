@@ -2,17 +2,31 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+import os
+
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
 
 def utc_now():
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./crm.db"
+# Define a URL do banco de dados
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL or DATABASE_URL.startswith("sqlite:///"):
+    # Banco de dados SQLite local (padrão)
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./crm.db"
+    connect_args = {"check_same_thread": False}
+else:
+    # Banco de dados PostgreSQL no Railway
+    SQLALCHEMY_DATABASE_URL = DATABASE_URL
+    connect_args = {}  # PostgreSQL não precisa de connect_args
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL, connect_args=connect_args
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
 class Lead(Base):
