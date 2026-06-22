@@ -151,6 +151,39 @@ async def dashboard(request: Request, db_session: Session = Depends(get_db), use
         "Consultoria": len([l for l in leads_fechados_list if l.project_type == "Consultoria"])
     }
     
+    # Taxa de conversão por tipo de projeto
+    def calculate_conversion_by_type(leads_list, project_type):
+        type_leads = [l for l in leads_list if l.project_type == project_type]
+        type_fechados = [l for l in type_leads if l.status == "Fechado"]
+        if len(type_leads) > 0:
+            return round(len(type_fechados) / len(type_leads) * 100, 1)
+        return 0
+    
+    conversion_by_type = {
+        "Marca autêntica": calculate_conversion_by_type(leads, "Marca autêntica"),
+        "Posicionamento": calculate_conversion_by_type(leads, "Posicionamento"),
+        "Consultoria": calculate_conversion_by_type(leads, "Consultoria")
+    }
+    
+    # Dados detalhados por tipo (total leads e fechados)
+    type_details = {
+        "Marca autêntica": {
+            "total": len([l for l in leads if l.project_type == "Marca autêntica"]),
+            "fechados": len([l for l in leads_fechados_list if l.project_type == "Marca autêntica"]),
+            "perdidos": len([l for l in leads if l.project_type == "Marca autêntica" and l.status == "Não fechou"])
+        },
+        "Posicionamento": {
+            "total": len([l for l in leads if l.project_type == "Posicionamento"]),
+            "fechados": len([l for l in leads_fechados_list if l.project_type == "Posicionamento"]),
+            "perdidos": len([l for l in leads if l.project_type == "Posicionamento" and l.status == "Não fechou"])
+        },
+        "Consultoria": {
+            "total": len([l for l in leads if l.project_type == "Consultoria"]),
+            "fechados": len([l for l in leads_fechados_list if l.project_type == "Consultoria"]),
+            "perdidos": len([l for l in leads if l.project_type == "Consultoria" and l.status == "Não fechou"])
+        }
+    }
+    
     # Métricas de conversão
     leads_fechados = len(leads_fechados_list)
     leads_perdidos = len([l for l in leads if l.status == "Não fechou"])
@@ -195,6 +228,8 @@ async def dashboard(request: Request, db_session: Session = Depends(get_db), use
             "total_revenue": total_revenue,
             "revenue_by_type": revenue_by_type,
             "volume_by_type": volume_by_type,
+            "conversion_by_type": conversion_by_type,
+            "type_details": type_details,
             "leads_fechados": leads_fechados,
             "leads_perdidos": leads_perdidos,
             "leads": leads,

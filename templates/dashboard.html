@@ -8,15 +8,16 @@
             <h2 class="text-3xl font-bold text-black dark:text-white">Conversão</h2>
             <div class="bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] px-4 py-1 rounded-full text-sm font-bold">Ano</div>
         </div>
-        <div class="text-[10rem] font-bold leading-none mb-4 text-black dark:text-[#B7F4B0]">{{ conversion_rate|int }}%</div>
+        <div id="conversion-value" class="text-[10rem] font-bold leading-none mb-4 text-black dark:text-[#B7F4B0]">{{ conversion_rate|int }}%</div>
         <div class="flex gap-8 text-sm text-gray-600 dark:text-gray-400">
-            <span>Fechados <strong class="text-black dark:text-white">{{ leads_fechados }}</strong></span>
-            <span>Perdidos <strong class="text-black dark:text-white">{{ leads_perdidos }}</strong></span>
+            <span>Fechados <strong id="fechados-count" class="text-black dark:text-white">{{ leads_fechados }}</strong></span>
+            <span>Perdidos <strong id="perdidos-count" class="text-black dark:text-white">{{ leads_perdidos }}</strong></span>
         </div>
         <div class="flex gap-2 mt-8">
-            <span class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10">Posicionamento</span>
-            <span class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10">Consultoria</span>
-            <span class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10">Marca autêntica</span>
+            <button onclick="toggleConversion('all')" id="btn-conv-all" class="px-3 py-1 bg-[#2D2D2D] text-white dark:bg-[#F2EDE4] dark:text-[#1a1a1a] rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Todos</button>
+            <button onclick="toggleConversion('Posicionamento')" id="btn-conv-Posicionamento" class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Posicionamento</button>
+            <button onclick="toggleConversion('Consultoria')" id="btn-conv-Consultoria" class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Consultoria</button>
+            <button onclick="toggleConversion('Marca autêntica')" id="btn-conv-Marca_autentica" class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Marca autêntica</button>
         </div>
     </div>
 
@@ -87,9 +88,9 @@
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-2xl font-bold text-black dark:text-white">Resultados</h2>
             <div class="flex gap-2">
-                <button onclick="updateChart('year', event)" class="px-4 py-1 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-full text-xs font-bold">1A</button>
-                <button onclick="updateChart('6m', event)" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">6M</button>
-                <button onclick="updateChart('3m', event)" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">3M</button>
+                <button onclick="updateChart('year', event)" id="btn-chart-year" class="px-4 py-1 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-full text-xs font-bold">1A</button>
+                <button onclick="updateChart('6m', event)" id="btn-chart-6m" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">6M</button>
+                <button onclick="updateChart('3m', event)" id="btn-chart-3m" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">3M</button>
             </div>
         </div>
         <div class="grid grid-cols-2 gap-8 mb-8">
@@ -177,7 +178,15 @@
 
 {% block scripts %}
 <script>
-    // Dados do calendário injetados pelo backend
+    // Dados injetados pelo backend
+    const conversionByType = JSON.parse('{{ conversion_by_type|tojson|safe }}');
+    const typeDetails = JSON.parse('{{ type_details|tojson|safe }}');
+    const totalLeads = {{ total_leads or 0 }};
+    const totalFechados = {{ leads_fechados or 0 }};
+    const totalPerdidos = {{ leads_perdidos or 0 }};
+    const conversionRate = {{ conversion_rate or 0 }};
+
+    // Dados do calendário
     const calendarData = JSON.parse('{{ (full_calendar or [])|tojson | safe }}');
 
     function openCalendarModal(monthIdx) {
@@ -234,47 +243,7 @@
         }, 300);
     }
 
-    const ctx = document.getElementById('revenueChart').getContext('2d');
-    let revenueChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-            datasets: [{
-                label: 'Faturamento',
-                data: JSON.parse('{{ (monthly_revenue or [])|tojson | safe }}'),
-                borderColor: '#B7F4B0',
-                backgroundColor: 'rgba(183, 244, 176, 0.2)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: '#2D2D2D',
-                pointRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { display: false },
-                    ticks: {
-                        callback: function(value) {
-                            return 'R$ ' + value.toLocaleString('pt-BR');
-                        }
-                    }
-                },
-                x: {
-                    grid: { display: false }
-                }
-            }
-        }
-    });
-
-    // Gráfico de Faturamento por Tipo (Doughnut)
+    // Dados do donut
     const donutCtx = document.getElementById('revenueDonutChart').getContext('2d');
     const revenueData = JSON.parse('{{ revenue_by_type|tojson | safe }}');
     const volumeData = JSON.parse('{{ volume_by_type|tojson | safe }}');
@@ -351,7 +320,7 @@
             btnVolume.classList.add('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
             
             btnRevenue.classList.remove('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
-            btnRevenue.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
+            btnRevenue.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
         } else {
             // Atualiza Gráfico
             currentDonutChart.data.datasets[0].data = [
@@ -370,13 +339,54 @@
             valCons.innerText = 'R$ ' + (revenueData['Consultoria'] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
             // Estilo Botões
-            btnRevenue.classList.remove('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
+            btnRevenue.classList.remove('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
             btnRevenue.classList.add('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
             
             btnVolume.classList.remove('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
             btnVolume.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
         }
     }
+
+    // Dados do gráfico de resultados
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    let revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+            datasets: [{
+                label: 'Faturamento',
+                data: JSON.parse('{{ (monthly_revenue or [])|tojson | safe }}'),
+                borderColor: '#B7F4B0',
+                backgroundColor: 'rgba(183, 244, 176, 0.2)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#2D2D2D',
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: false },
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR');
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
 
     function updateChart(period, event) {
         let labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -408,14 +418,12 @@
         revenueChart.update();
         
         // Update button styles
-        if (event && event.target) {
-            event.target.parentElement.querySelectorAll('button').forEach(btn => {
-                btn.classList.remove('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
-                btn.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
-            });
-            event.target.classList.remove('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
-            event.target.classList.add('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
-        }
+        document.querySelectorAll('[id^="btn-chart-"]').forEach(btn => {
+            btn.classList.remove('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
+            btn.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
+        });
+        event.target.classList.remove('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
+        event.target.classList.add('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
     }
 
     function toggleLeads(period) {
@@ -423,21 +431,60 @@
         const labelEl = document.getElementById('leadsLabel');
         const btnMonth = document.getElementById('btnLeadsMonth');
         const btnYear = document.getElementById('btnLeadsYear');
+        const monthlyLeads = JSON.parse('{{ (monthly_leads or [])|tojson | safe }}');
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const nowMonth = new Date().getMonth();
         
         if (period === 'month') {
-            valueEl.innerText = '{{ (monthly_leads or [])[now.month - 1] if monthly_leads else 0 }}';
-            labelEl.innerText = 'Leads em {{ ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"][(now.month - 1) if now else 0] }}';
+            valueEl.innerText = monthlyLeads[nowMonth] || 0;
+            labelEl.innerText = 'Leads em ' + monthNames[nowMonth];
             btnMonth.classList.add('bg-white', 'shadow-sm');
             btnMonth.classList.remove('text-black/60');
             btnYear.classList.remove('bg-white', 'shadow-sm');
             btnYear.classList.add('text-black/60');
         } else {
-            valueEl.innerText = '{{ total_leads or 0 }}';
+            valueEl.innerText = {{ total_leads or 0 }};
             labelEl.innerText = 'Total acumulado no ano';
             btnYear.classList.add('bg-white', 'shadow-sm');
             btnYear.classList.remove('text-black/60');
             btnMonth.classList.remove('bg-white', 'shadow-sm');
             btnMonth.classList.add('text-black/60');
+        }
+    }
+
+    // Função para alternar conversão por tipo
+    function toggleConversion(type) {
+        const conversionValueEl = document.getElementById('conversion-value');
+        const fechadosCountEl = document.getElementById('fechados-count');
+        const perdidosCountEl = document.getElementById('perdidos-count');
+        
+        // Atualiza estilo dos botões
+        document.querySelectorAll('[id^="btn-conv-"]').forEach(btn => {
+            btn.classList.remove('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
+            btn.classList.add('bg-white', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
+        });
+        
+        if (type === 'all') {
+            // Exibe dados gerais
+            conversionValueEl.innerText = Math.round(conversionRate) + '%';
+            fechadosCountEl.innerText = totalFechados;
+            perdidosCountEl.innerText = totalPerdidos;
+            document.getElementById('btn-conv-all').classList.remove('bg-white', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
+            document.getElementById('btn-conv-all').classList.add('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
+        } else {
+            // Exibe dados por tipo
+            const typeKey = type === 'Marca autêntica' ? 'Marca autêntica' : type;
+            const conversion = conversionByType[typeKey];
+            const details = typeDetails[typeKey];
+            
+            conversionValueEl.innerText = Math.round(conversion) + '%';
+            fechadosCountEl.innerText = details.fechados;
+            perdidosCountEl.innerText = details.perdidos;
+            
+            // Atualiza estilo do botão clicado
+            const btnId = type === 'Marca autêntica' ? 'btn-conv-Marca_autentica' : 'btn-conv-' + type;
+            document.getElementById(btnId).classList.remove('bg-white', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
+            document.getElementById(btnId).classList.add('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
         }
     }
 </script>
