@@ -630,10 +630,50 @@ async def toggle_kanban_card_complete(
 ):
     card = db_session.query(db.KanbanCard).filter(db.KanbanCard.id == card_id).first()
     if card:
+        # Toggle completion
         card.is_completed = 1 - card.is_completed
+        
+        # Get the board
+        board = db_session.query(db.KanbanBoard).filter(db.KanbanBoard.lead_id == lead_id).first()
+        
+        if card.is_completed == 1:
+            # Move to Concluídas
+            done_list = db_session.query(db.KanbanList).filter(
+                db.KanbanList.board_id == board.id,
+                db.KanbanList.name == "Concluídas"
+            ).first()
+            
+            if not done_list:
+                max_order = db_session.query(db.KanbanList).filter(db.KanbanList.board_id == board.id).count()
+                done_list = db.KanbanList(board_id=board.id, name="Concluídas", order_index=max_order)
+                db_session.add(done_list)
+                db_session.commit()
+                db_session.refresh(done_list)
+            
+            card.list_id = done_list.id
+            max_card_order = db_session.query(db.KanbanCard).filter(db.KanbanCard.list_id == done_list.id).count()
+            card.order_index = max_card_order
+        else:
+            # Move back to Demandas a Iniciar
+            start_list = db_session.query(db.KanbanList).filter(
+                db.KanbanList.board_id == board.id,
+                db.KanbanList.name == "Demandas a iniciar"
+            ).first()
+            
+            if not start_list:
+                # If no "Demandas a iniciar", use first list
+                start_list = db_session.query(db.KanbanList).filter(
+                    db.KanbanList.board_id == board.id
+                ).order_by(db.KanbanList.order_index).first()
+            
+            if start_list:
+                card.list_id = start_list.id
+                max_card_order = db_session.query(db.KanbanCard).filter(db.KanbanCard.list_id == start_list.id).count()
+                card.order_index = max_card_order
+        
         db_session.commit()
-    referer = request.headers.get("referer", f"/cliente/{lead_id}/kanban")
-    return RedirectResponse(url=referer, status_code=303)
+        
+    return RedirectResponse(url=f"/cliente/{lead_id}/kanban", status_code=303)
 
 @app.post("/cliente/{lead_id}/kanban/card/{card_id}/delete")
 async def delete_kanban_card(
@@ -667,6 +707,26 @@ async def move_kanban_card(
         card.order_index = max_order
         db_session.commit()
     return RedirectResponse(url=f"/cliente/{lead_id}/kanban", status_code=303)
+
+@app.post("/cliente/{lead_id}/kanban/reorder")
+async def reorder_kanban_cards(
+    request: Request,
+    lead_id: int,
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    form_data = await request.form()
+    card_order = form_data.getlist("card_order[]")
+    list_id = int(form_data.get("list_id"))
+    
+    for i, card_id in enumerate(card_order):
+        card = db_session.query(db.KanbanCard).filter(db.KanbanCard.id == int(card_id)).first()
+        if card:
+            card.order_index = i
+            card.list_id = list_id
+    
+    db_session.commit()
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     import uvicorn

@@ -42,15 +42,27 @@
             </div>
         </div>
         
-        <div class="space-y-3">
+        <div class="space-y-3" 
+             data-list-id="{{ lst.id }}"
+             ondragover="handleDragOver(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event, {{ lst.id }})">
             {% for card in lst.cards %}
-            <div class="bg-white dark:bg-[#1a1a1a] p-4 rounded-xl shadow-sm border border-white/50 dark:border-white/5 group" 
+            <div id="card-{{ card.id }}"
+                 draggable="true"
+                 ondragstart="handleDragStart(event, {{ card.id }}, {{ lst.id }})"
+                 ondragend="handleDragEnd(event)"
+                 class="bg-white dark:bg-[#1a1a1a] p-4 rounded-xl shadow-sm border border-white/50 dark:border-white/5 group cursor-grab active:cursor-grabbing" 
                  style="border-left: 4px solid {{ card.color }};">
                 <div class="flex justify-between items-start mb-2">
                     <form method="post" action="/cliente/{{ lead.id }}/kanban/card/{{ card.id }}/toggle-complete" class="mr-2">
-                        <button type="submit" class="p-1 rounded-full border-2 {% if card.is_completed == 1 %}bg-green-100 border-green-400{% else %}border-gray-300 dark:border-gray-600 hover:border-green-300{% endif %} transition-colors">
+                        <button type="submit" class="p-1 rounded-full border-2 transition-all flex items-center justify-center {% if card.is_completed == 1 %}bg-green-100 border-green-500{% else %}border-gray-300 dark:border-gray-600 hover:border-green-400{% endif %}">
                             {% if card.is_completed == 1 %}
-                            <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            {% else %}
+                            <svg class="w-3 h-3 text-transparent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                             </svg>
                             {% endif %}
@@ -336,5 +348,119 @@
             closeAllModals();
         }
     });
+    
+    // DRAG AND DROP FUNCTIONS
+    let draggedCardId = null;
+    let draggedCardEl = null;
+    let draggedListId = null;
+    
+    function handleDragStart(e, cardId, listId) {
+        draggedCardId = cardId;
+        draggedListId = listId;
+        draggedCardEl = e.target.closest('[draggable="true"]');
+        
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", cardId);
+        
+        setTimeout(() => {
+            if (draggedCardEl) {
+                draggedCardEl.classList.add('opacity-50', 'scale-95');
+            }
+        }, 0);
+    }
+    
+    function handleDragEnd(e) {
+        // Remove visual effects from all cards
+        document.querySelectorAll('[draggable="true"]').forEach(card => {
+            card.classList.remove('opacity-50', 'scale-95', 'border-dashed', 'border-2');
+        });
+        
+        // Remove highlight from all lists
+        document.querySelectorAll('[data-list-id]').forEach(list => {
+            list.classList.remove('ring-2', 'ring-green-400', 'dark:ring-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+        });
+        
+        draggedCardId = null;
+        draggedCardEl = null;
+        draggedListId = null;
+    }
+    
+    function handleDragOver(e) {
+        e.preventDefault();
+        const listEl = e.currentTarget;
+        listEl.classList.add('ring-2', 'ring-green-400', 'dark:ring-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+        
+        // Show placeholder when dragging over card
+        const draggedOverCard = e.target.closest('[draggable="true"]');
+        if (draggedOverCard && draggedOverCard !== draggedCardEl) {
+            document.querySelectorAll('.placeholder-card').forEach(el => el.remove());
+            
+            const placeholder = document.createElement('div');
+            placeholder.className = 'placeholder-card h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl';
+            draggedOverCard.parentNode.insertBefore(placeholder, draggedOverCard.nextSibling);
+        }
+    }
+    
+    function handleDragLeave(e) {
+        const listEl = e.currentTarget;
+        listEl.classList.remove('ring-2', 'ring-green-400', 'dark:ring-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+    }
+    
+    async function handleDrop(e, targetListId) {
+        e.preventDefault();
+        
+        if (!draggedCardId) return;
+        
+        document.querySelectorAll('.placeholder-card').forEach(el => el.remove());
+        
+        // Get all cards in target list, determine new order
+        const targetListEl = document.querySelector(`[data-list-id="${targetListId}"]`);
+        const cardsInTarget = Array.from(targetListEl.querySelectorAll('[draggable="true"]'));
+        
+        const cardOrder = [];
+        let inserted = false;
+        
+        cardsInTarget.forEach((card, index) => {
+            if (card.id === `card-${draggedCardId}`) {
+                // Skip the dragged card
+                return;
+            }
+            
+            // If we're inserting before this card
+            const rect = card.getBoundingClientRect();
+            const y = e.clientY;
+            
+            if (!inserted && y < rect.top + rect.height / 2) {
+                cardOrder.push(draggedCardId);
+                inserted = true;
+            }
+            
+            const cardIdMatch = card.id.match(/card-(\d+)/);
+            if (cardIdMatch) {
+                cardOrder.push(parseInt(cardIdMatch[1]));
+            }
+        });
+        
+        if (!inserted) {
+            cardOrder.push(draggedCardId);
+        }
+        
+        // Send order to server
+        const formData = new FormData();
+        formData.append('list_id', targetListId);
+        cardOrder.forEach(id => formData.append('card_order[]', id));
+        
+        try {
+            await fetch(`/cliente/{{ lead.id }}/kanban/reorder`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            window.location.reload();
+        } catch (err) {
+            console.error('Error reordering cards:', err);
+            alert('Ocorreu um erro ao reordenar os cartões');
+        }
+    }
 </script>
 {% endblock %}
