@@ -457,6 +457,217 @@ async def restore_lead(
     db_session.commit()
     return {"status": "success"}
 
+# --- Kanban Routes ---
+
+@app.get("/cliente/{lead_id}/kanban", response_class=HTMLResponse)
+async def cliente_kanban(request: Request, lead_id: int, db_session: Session = Depends(get_db), user: str = Depends(get_current_user)):
+    lead = db_session.query(db.Lead).filter(db.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    # Get or create board
+    board = db_session.query(db.KanbanBoard).filter(db.KanbanBoard.lead_id == lead_id).first()
+    if not board:
+        board = db.KanbanBoard(lead_id=lead_id)
+        db_session.add(board)
+        db_session.commit()
+        db_session.refresh(board)
+        
+        # Create default lists
+        default_lists = ["Demandas a iniciar", "Em execução", "Concluídas"]
+        for i, list_name in enumerate(default_lists):
+            new_list = db.KanbanList(board_id=board.id, name=list_name, order_index=i)
+            db_session.add(new_list)
+        db_session.commit()
+    
+    # Get all lists and cards for this board
+    lists = db_session.query(db.KanbanList).filter(db.KanbanList.board_id == board.id).order_by(db.KanbanList.order_index).all()
+    list_data = []
+    for lst in lists:
+        cards = db_session.query(db.KanbanCard).filter(db.KanbanCard.list_id == lst.id).order_by(db.KanbanCard.order_index).all()
+        list_data.append({
+            "id": lst.id,
+            "name": lst.name,
+            "order_index": lst.order_index,
+            "cards": cards
+        })
+    
+    notifications = get_notifications(db_session)
+    return templates.TemplateResponse(
+        request,
+        "kanban.html",
+        {
+            "lead": lead,
+            "board": board,
+            "lists": list_data,
+            "notifications": notifications
+        }
+    )
+
+@app.post("/cliente/{lead_id}/kanban/add-lista")
+async def add_kanban_list(
+    request: Request,
+    lead_id: int,
+    name: str = Form(...),
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    board = db_session.query(db.KanbanBoard).filter(db.KanbanBoard.lead_id == lead_id).first()
+    if not board:
+        # Create board if doesn't exist
+        board = db.KanbanBoard(lead_id=lead_id)
+        db_session.add(board)
+        db_session.commit()
+        db_session.refresh(board)
+    
+    max_order = db_session.query(db.KanbanList).filter(db.KanbanList.board_id == board.id).count()
+    new_list = db.KanbanList(board_id=board.id, name=name, order_index=max_order)
+    db_session.add(new_list)
+    db_session.commit()
+    return RedirectResponse(url=f"/cliente/{lead_id}/kanban", status_code=303)
+
+@app.post("/cliente/{lead_id}/kanban/lista/{list_id}/edit")
+async def edit_kanban_list(
+    request: Request,
+    lead_id: int,
+    list_id: int,
+    name: str = Form(...),
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    lst = db_session.query(db.KanbanList).filter(db.KanbanList.id == list_id).first()
+    if lst:
+        lst.name = name
+        db_session.commit()
+    return RedirectResponse(url=f"/cliente/{lead_id}/kanban", status_code=303)
+
+@app.post("/cliente/{lead_id}/kanban/lista/{list_id}/delete")
+async def delete_kanban_list(
+    request: Request,
+    lead_id: int,
+    list_id: int,
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    lst = db_session.query(db.KanbanList).filter(db.KanbanList.id == list_id).first()
+    if lst:
+        # Delete all cards first
+        cards = db_session.query(db.KanbanCard).filter(db.KanbanCard.list_id == list_id).all()
+        for card in cards:
+            if card.file_path and os.path.exists(card.file_path.lstrip('/')):
+                os.remove(card.file_path.lstrip('/'))
+            db_session.delete(card)
+        db_session.delete(lst)
+        db_session.commit()
+    return RedirectResponse(url=f"/cliente/{lead_id}/kanban", status_code=303)
+
+@app.post("/cliente/{lead_id}/kanban/lista/{list_id}/add-card")
+async def add_kanban_card(
+    request: Request,
+    lead_id: int,
+    list_id: int,
+    title: str = Form(...),
+    description: str = Form(None),
+    color: str = Form("#ffffff"),
+    link: str = Form(None),
+    file: UploadFile = File(None),
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    file_path = None
+    if file and file.filename:
+        file_path = await save_photo(file)
+    
+    max_order = db_session.query(db.KanbanCard).filter(db.KanbanCard.list_id == list_id).count()
+    new_card = db.KanbanCard(
+        list_id=list_id,
+        title=title,
+        description=description,
+        color=color,
+        link=link,
+        file_path=file_path,
+        order_index=max_order
+    )
+    db_session.add(new_card)
+    db_session.commit()
+    return RedirectResponse(url=f"/cliente/{lead_id}/kanban", status_code=303)
+
+@app.post("/cliente/{lead_id}/kanban/card/{card_id}/edit")
+async def edit_kanban_card(
+    request: Request,
+    lead_id: int,
+    card_id: int,
+    title: str = Form(...),
+    description: str = Form(None),
+    color: str = Form("#ffffff"),
+    link: str = Form(None),
+    file: UploadFile = File(None),
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    card = db_session.query(db.KanbanCard).filter(db.KanbanCard.id == card_id).first()
+    if card:
+        card.title = title
+        card.description = description
+        card.color = color
+        card.link = link
+        
+        if file and file.filename:
+            if card.file_path and os.path.exists(card.file_path.lstrip('/')):
+                os.remove(card.file_path.lstrip('/'))
+            card.file_path = await save_photo(file)
+        
+        db_session.commit()
+    return RedirectResponse(url=f"/cliente/{lead_id}/kanban", status_code=303)
+
+@app.post("/cliente/{lead_id}/kanban/card/{card_id}/toggle-complete")
+async def toggle_kanban_card_complete(
+    request: Request,
+    lead_id: int,
+    card_id: int,
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    card = db_session.query(db.KanbanCard).filter(db.KanbanCard.id == card_id).first()
+    if card:
+        card.is_completed = 1 - card.is_completed
+        db_session.commit()
+    referer = request.headers.get("referer", f"/cliente/{lead_id}/kanban")
+    return RedirectResponse(url=referer, status_code=303)
+
+@app.post("/cliente/{lead_id}/kanban/card/{card_id}/delete")
+async def delete_kanban_card(
+    request: Request,
+    lead_id: int,
+    card_id: int,
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    card = db_session.query(db.KanbanCard).filter(db.KanbanCard.id == card_id).first()
+    if card:
+        if card.file_path and os.path.exists(card.file_path.lstrip('/')):
+            os.remove(card.file_path.lstrip('/'))
+        db_session.delete(card)
+        db_session.commit()
+    return RedirectResponse(url=f"/cliente/{lead_id}/kanban", status_code=303)
+
+@app.post("/cliente/{lead_id}/kanban/card/{card_id}/move/{new_list_id}")
+async def move_kanban_card(
+    request: Request,
+    lead_id: int,
+    card_id: int,
+    new_list_id: int,
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    card = db_session.query(db.KanbanCard).filter(db.KanbanCard.id == card_id).first()
+    if card:
+        card.list_id = new_list_id
+        max_order = db_session.query(db.KanbanCard).filter(db.KanbanCard.list_id == new_list_id).count()
+        card.order_index = max_order
+        db_session.commit()
+    return RedirectResponse(url=f"/cliente/{lead_id}/kanban", status_code=303)
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8003))

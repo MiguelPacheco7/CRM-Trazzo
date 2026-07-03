@@ -67,4 +67,36 @@ class Client(Base):
     photo_path = Column(String, nullable=True)
     lead_id = Column(Integer, ForeignKey("leads.id"), nullable=True)
 
+class KanbanBoard(Base):
+    __tablename__ = "kanban_boards"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    created_at = Column(DateTime, default=utc_now)
+
+class KanbanList(Base):
+    __tablename__ = "kanban_lists"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    board_id = Column(Integer, ForeignKey("kanban_boards.id"), nullable=False)
+    name = Column(String, nullable=False)
+    order_index = Column(Integer, default=0)
+    created_at = Column(DateTime, default=utc_now)
+
+class KanbanCard(Base):
+    __tablename__ = "kanban_cards"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    list_id = Column(Integer, ForeignKey("kanban_lists.id"), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    color = Column(String, default="#ffffff")
+    link = Column(String, nullable=True)
+    file_path = Column(String, nullable=True)
+    is_completed = Column(Integer, default=0)
+    order_index = Column(Integer, default=0)
+    created_at = Column(DateTime, default=utc_now)
+
 Base.metadata.create_all(bind=engine)
+
+#postgresql://neondb_owner:npg_9ZoPDdWnAJY2@ep-noisy-morning-acye2ru6.sa-east-1.aws.neon.tech/neondb?sslmode=require
