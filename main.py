@@ -19,6 +19,15 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+from fastapi.responses import FileResponse
+import os
+
+@app.get("/baixar-leads")
+def download_banco():
+    if os.path.exists("crm.db"):
+        return FileResponse("crm.db", media_type='application/octet-stream', filename="leads_backup.db")
+    return {"erro": "Arquivo não encontrado"}
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
