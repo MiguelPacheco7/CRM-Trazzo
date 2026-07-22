@@ -148,19 +148,16 @@ async def dashboard(request: Request, db_session: Session = Depends(get_db), use
     monthly_leads = [monthly_leads_count[i] for i in range(12)]
     
     # Valor e Volume por tipo de projeto (Apenas leads com status 'Fechado')
-    revenue_by_type = {
-        "Marca autêntica": sum(l.value for l in leads_fechados_list if l.project_type == "Marca autêntica" and l.value),
-        "Posicionamento": sum(l.value for l in leads_fechados_list if l.project_type == "Posicionamento" and l.value),
-        "Consultoria": sum(l.value for l in leads_fechados_list if l.project_type == "Consultoria" and l.value)
-    }
+    # 1. Coleta dinamicamente todos os tipos de projeto existentes no banco de dados
+    all_project_types = list(set([l.project_type for l in leads if l.project_type]))
+    if not all_project_types:
+        all_project_types = ["Marca autêntica", "Posicionamento", "Consultoria"] # Fallback se estiver vazio
+
+    # 2. Faturamento e Volume por tipo gerados dinamicamente
+    revenue_by_type = {pt: sum(l.value for l in leads_fechados_list if l.project_type == pt and l.value) for pt in all_project_types}
+    volume_by_type = {pt: len([l for l in leads_fechados_list if l.project_type == pt]) for pt in all_project_types}
     
-    volume_by_type = {
-        "Marca autêntica": len([l for l in leads_fechados_list if l.project_type == "Marca autêntica"]),
-        "Posicionamento": len([l for l in leads_fechados_list if l.project_type == "Posicionamento"]),
-        "Consultoria": len([l for l in leads_fechados_list if l.project_type == "Consultoria"])
-    }
-    
-    # Taxa de conversão por tipo de projeto
+    # 3. Taxa de conversão por tipo de projeto
     def calculate_conversion_by_type(leads_list, project_type):
         type_leads = [l for l in leads_list if l.project_type == project_type]
         type_fechados = [l for l in type_leads if l.status == "Fechado"]
@@ -168,29 +165,15 @@ async def dashboard(request: Request, db_session: Session = Depends(get_db), use
             return round(len(type_fechados) / len(type_leads) * 100, 1)
         return 0
     
-    conversion_by_type = {
-        "Marca autêntica": calculate_conversion_by_type(leads, "Marca autêntica"),
-        "Posicionamento": calculate_conversion_by_type(leads, "Posicionamento"),
-        "Consultoria": calculate_conversion_by_type(leads, "Consultoria")
-    }
+    conversion_by_type = {pt: calculate_conversion_by_type(leads, pt) for pt in all_project_types}
     
-    # Dados detalhados por tipo (total leads e fechados)
+    # 4. Dados detalhados por tipo gerados dinamicamente
     type_details = {
-        "Marca autêntica": {
-            "total": len([l for l in leads if l.project_type == "Marca autêntica"]),
-            "fechados": len([l for l in leads_fechados_list if l.project_type == "Marca autêntica"]),
-            "perdidos": len([l for l in leads if l.project_type == "Marca autêntica" and l.status == "Não fechou"])
-        },
-        "Posicionamento": {
-            "total": len([l for l in leads if l.project_type == "Posicionamento"]),
-            "fechados": len([l for l in leads_fechados_list if l.project_type == "Posicionamento"]),
-            "perdidos": len([l for l in leads if l.project_type == "Posicionamento" and l.status == "Não fechou"])
-        },
-        "Consultoria": {
-            "total": len([l for l in leads if l.project_type == "Consultoria"]),
-            "fechados": len([l for l in leads_fechados_list if l.project_type == "Consultoria"]),
-            "perdidos": len([l for l in leads if l.project_type == "Consultoria" and l.status == "Não fechou"])
-        }
+        pt: {
+            "total": len([l for l in leads if l.project_type == pt]),
+            "fechados": len([l for l in leads_fechados_list if l.project_type == pt]),
+            "perdidos": len([l for l in leads if l.project_type == pt and l.status == "Não fechou"])
+        } for pt in all_project_types
     }
     
     # Métricas de conversão
@@ -734,6 +717,29 @@ async def reorder_kanban_cards(
             card.order_index = i
             card.list_id = list_id
     
+    db_session.commit()
+    return {"status": "ok"}
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8003))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
+@app.post("/cliente/{lead_id}/kanban/reorder-lists")
+async def reorder_kanban_lists(
+    request: Request,
+    lead_id: int,
+    db_session: Session = Depends(get_db),
+    user: str = Depends(get_current_user)
+):
+    form_data = await request.form()
+    list_order = form_data.getlist("list_order[]")
+
+    for i, list_id in enumerate(list_order):
+        lst = db_session.query(db.KanbanList).filter(db.KanbanList.id == int(list_id)).first()
+        if lst:
+            lst.order_index = i
+
     db_session.commit()
     return {"status": "ok"}
 

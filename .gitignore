@@ -5,6 +5,7 @@
 *.db
 *.sqlite
 *.sqlite3
+crm.db
 
 # Arquivos de cache Python
 __pycache__/
