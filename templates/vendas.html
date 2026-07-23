@@ -164,12 +164,28 @@
             <div class="grid grid-cols-2 gap-5">
                 <div>
                     <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Tipo de Projeto</label>
-                    <select name="project_type"
-                        class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
-                        <option value="Marca autêntica">Marca autêntica</option>
-                        <option value="Posicionamento">Posicionamento</option>
-                        <option value="Consultoria">Consultoria</option>
-                    </select>
+                    <div class="relative">
+                        <select id="add_type_select" onchange="handleAddProjectTypeChange(this)"
+                            class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner outline-none appearance-none">
+                            <option value="Marca autêntica">Marca autêntica</option>
+                            <option value="Posicionamento">Posicionamento</option>
+                            <option value="Consultoria">Consultoria</option>
+                            <option value="novo" class="font-bold text-[#FF9F1C]">+ Adicionar novo serviço...</option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <input type="text" id="add_type_new" placeholder="Digite o nome do novo serviço"
+                        class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner outline-none mt-3 hidden focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4]">
+
+                    <!-- Campo obrigatório com valor padrão inicial -->
+                    <input type="hidden" name="project_type" id="add_type_final" value="Marca autêntica">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Valor Estimado
@@ -257,12 +273,27 @@
             <div class="grid grid-cols-2 gap-5">
                 <div>
                     <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Tipo de Projeto</label>
-                    <select name="project_type" id="edit_type"
-                        class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
-                        <option value="Marca autêntica">Marca autêntica</option>
-                        <option value="Posicionamento">Posicionamento</option>
-                        <option value="Consultoria">Consultoria</option>
-                    </select>
+                    <div class="relative">
+                        <select id="edit_type_select" onchange="handleEditProjectTypeChange(this)"
+                            class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none appearance-none">
+                            <option value="Marca autêntica">Marca autêntica</option>
+                            <option value="Posicionamento">Posicionamento</option>
+                            <option value="Consultoria">Consultoria</option>
+                            <option value="novo" class="font-bold text-[#FF9F1C]">+ Adicionar novo serviço...</option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <input type="text" id="edit_type_new" placeholder="Digite o nome do novo serviço"
+                        class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner outline-none mt-3 hidden focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4]">
+
+                    <input type="hidden" name="project_type" id="edit_type_final">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Valor Estimado
@@ -350,7 +381,26 @@
         document.getElementById('edit_company').value = data.company === 'None' ? '' : data.company;
         document.getElementById('edit_social').value = data.social === 'None' ? '' : data.social;
         document.getElementById('edit_phone').value = data.phone === 'None' ? '' : data.phone;
-        document.getElementById('edit_type').value = data.type;
+        // --- NOVA LÓGICA DO TIPO DE PROJETO NA EDIÇÃO ---
+        const typeVal = data.type;
+        const selectEl = document.getElementById('edit_type_select');
+        const newEl = document.getElementById('edit_type_new');
+
+        let exists = false;
+        for (let i = 0; i < selectEl.options.length; i++) {
+            if (selectEl.options[i].value === typeVal) exists = true;
+        }
+
+        if (exists) {
+            selectEl.value = typeVal;
+            newEl.classList.add('hidden');
+        } else {
+            selectEl.value = 'novo';
+            newEl.value = typeVal;
+            newEl.classList.remove('hidden');
+        }
+        updateFinalEditProjectType();
+        // ------------------------------------------------
         document.getElementById('edit_value').value = data.value;
         document.getElementById('edit_problems').value = data.problems === 'None' ? '' : data.problems;
         document.getElementById('edit_solutions').value = data.solutions === 'None' ? '' : data.solutions;
@@ -464,5 +514,62 @@
             toast.classList.add('translate-y-20', 'opacity-0');
         }, 3000);
     }
+
+    function handleAddProjectTypeChange(select) {
+        const newEl = document.getElementById('add_type_new');
+        if (select.value === 'novo') {
+            newEl.classList.remove('hidden');
+            newEl.required = true;
+            newEl.value = '';
+            newEl.focus();
+        } else {
+            newEl.classList.add('hidden');
+            newEl.required = false;
+        }
+        updateFinalAddProjectType();
+    }
+
+    function updateFinalAddProjectType() {
+        const selectVal = document.getElementById('add_type_select').value;
+        const newTypeVal = document.getElementById('add_type_new').value;
+        document.getElementById('add_type_final').value = selectVal === 'novo' ? newTypeVal : selectVal;
+    }
+
+    function handleEditProjectTypeChange(select) {
+        const newEl = document.getElementById('edit_type_new');
+        if (select.value === 'novo') {
+            newEl.classList.remove('hidden');
+            newEl.required = true;
+            newEl.value = '';
+            newEl.focus();
+        } else {
+            newEl.classList.add('hidden');
+            newEl.required = false;
+        }
+        updateFinalEditProjectType();
+    }
+
+    function updateFinalEditProjectType() {
+        const selectVal = document.getElementById('edit_type_select').value;
+        const newTypeVal = document.getElementById('edit_type_new').value;
+        document.getElementById('edit_type_final').value = selectVal === 'novo' ? newTypeVal : selectVal;
+    }
+
+    // Adiciona o escutador de eventos para a edição também
+    document.addEventListener('DOMContentLoaded', () => {
+        // ... seu código antigo do add_type_new ...
+
+        const newEditTypeInput = document.getElementById('edit_type_new');
+        if (newEditTypeInput) {
+            newEditTypeInput.addEventListener('input', updateFinalEditProjectType);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const newAddTypeInput = document.getElementById('add_type_new');
+        if (newAddTypeInput) {
+            newAddTypeInput.addEventListener('input', updateFinalAddProjectType);
+        }
+    });
 </script>
 {% endblock %}

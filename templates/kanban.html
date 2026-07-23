@@ -5,14 +5,17 @@
     <div class="flex items-center gap-4 mb-4">
         <a href="/clientes" class="p-2 hover:bg-white/50 dark:hover:bg-white/10 rounded-full transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
             </svg>
         </a>
         <div class="flex items-center gap-4">
             {% if lead.photo_path %}
-            <img src="{{ lead.photo_path }}" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
+            <img src="{{ lead.photo_path }}"
+                class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm">
             {% else %}
-            <img src="https://i.pravatar.cc/100?u={{ lead.id }}" class="w-12 h-12 rounded-full border-2 border-white shadow-sm">
+            <img src="https://i.pravatar.cc/100?u={{ lead.id }}"
+                class="w-12 h-12 rounded-full border-2 border-white shadow-sm">
             {% endif %}
             <div>
                 <h1 class="text-2xl font-bold text-black dark:text-white">{{ lead.name }}</h1>
@@ -24,87 +27,108 @@
     </div>
 </div>
 
-<div class="flex gap-4 overflow-x-auto pb-8 custom-scrollbar">
+<div class="flex items-start gap-4 overflow-x-auto pb-8 custom-scrollbar">
     <!-- Lists -->
     {% for lst in lists %}
     <div class="flex-shrink-0 w-80 bg-[#EDE8DE] dark:bg-[#2D2D2D] rounded-2xl p-4 shadow-sm">
         <div class="flex justify-between items-center mb-4">
             <form method="post" action="/cliente/{{ lead.id }}/kanban/lista/{{ lst.id }}/edit" class="flex-1 mr-2">
-                <input type="text" name="name" value="{{ lst.name }}" 
-                       class="w-full bg-transparent text-sm font-bold text-black dark:text-white focus:outline-none border-b border-transparent focus:border-[#FF9F1C]">
+                <input type="text" name="name" value="{{ lst.name }}"
+                    class="w-full bg-transparent text-sm font-bold text-black dark:text-white focus:outline-none border-b border-transparent focus:border-[#FF9F1C]">
             </form>
             <div class="flex gap-1">
-                <button onclick="openDeleteConfirm('lista', '{{ lst.id }}', '{{ lst.name|escape }}')" class="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-gray-400 hover:text-red-500">
+                <button onclick="openDeleteConfirm('lista', '{{ lst.id }}', '{{ lst.name|escape }}')"
+                    class="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-gray-400 hover:text-red-500">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                        </path>
                     </svg>
                 </button>
             </div>
         </div>
-        
-        <div class="space-y-3" 
-             data-list-id="{{ lst.id }}"
-             ondragover="handleDragOver(event)"
-             ondragleave="handleDragLeave(event)"
-             ondrop="handleDrop(event, {{ lst.id }})">
+
+        <div class="space-y-3 min-h-[150px] pb-4" data-list-id="{{ lst.id }}" ondragenter="event.preventDefault()"
+            ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event, '{{ lst.id }}')">
+
+            <!-- Adicionado aspas simples aqui -->
             {% for card in lst.cards %}
-            <div id="card-{{ card.id }}"
-                 draggable="true"
-                 ondragstart="handleDragStart(event, {{ card.id }}, {{ lst.id }})"
-                 ondragend="handleDragEnd(event)"
-                 class="bg-white dark:bg-[#1a1a1a] p-4 rounded-xl shadow-sm border border-white/50 dark:border-white/5 group cursor-grab active:cursor-grabbing" 
-                 style="border-left: 4px solid {{ card.color }};">
+            <div id="card-{{ card.id }}" draggable="true"
+                ondragstart="handleDragStart(event, '{{ card.id }}', '{{ lst.id }}')" ondragend="handleDragEnd(event)"
+                class="bg-white dark:bg-[#1a1a1a] p-4 rounded-xl shadow-sm border border-white/50 dark:border-white/5
+                group cursor-grab active:cursor-grabbing" style="border-left: 4px solid {{ card.color }};">
                 <div class="flex justify-between items-start mb-2">
-                    <form method="post" action="/cliente/{{ lead.id }}/kanban/card/{{ card.id }}/toggle-complete" class="mr-2">
-                        <button type="submit" class="p-1 rounded-full border-2 transition-all flex items-center justify-center {% if card.is_completed == 1 %}bg-green-100 border-green-500{% else %}border-gray-300 dark:border-gray-600 hover:border-green-400{% endif %}">
+                    <form method="post" action="/cliente/{{ lead.id }}/kanban/card/{{ card.id }}/toggle-complete"
+                        class="mr-2">
+                        <button type="submit"
+                            class="p-1 rounded-full border-2 transition-all flex items-center justify-center {% if card.is_completed == 1 %}bg-green-100 border-green-500{% else %}border-gray-300 dark:border-gray-600 hover:border-green-400{% endif %}">
                             {% if card.is_completed == 1 %}
                             <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                             {% else %}
                             <svg class="w-3 h-3 text-transparent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                             {% endif %}
                         </button>
                     </form>
                     <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="openEditCardModal('{{ card.id }}', '{{ card.title|escape }}', '{{ card.description|escape }}', '{{ card.color }}', '{{ card.link|escape }}')" class="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-400">
+                        <button
+                            onclick="openEditCardModal('{{ card.id }}', '{{ card.title|escape }}', '{{ card.description|escape }}', '{{ card.color }}', '{{ card.link|escape }}')"
+                            class="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                </path>
                             </svg>
                         </button>
-                        <button onclick="openDeleteConfirm('card', '{{ card.id }}', '{{ card.title|escape }}')" class="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-gray-400 hover:text-red-500">
+                        <button onclick="openDeleteConfirm('card', '{{ card.id }}', '{{ card.title|escape }}')"
+                            class="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-gray-400 hover:text-red-500">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
                             </svg>
                         </button>
                     </div>
                 </div>
-                
-                <h4 class="text-sm font-bold mb-2 text-black dark:text-white {% if card.is_completed == 1 %}line-through opacity-50{% endif %}">{{ card.title }}</h4>
+
+                <h4
+                    class="text-sm font-bold mb-2 text-black dark:text-white {% if card.is_completed == 1 %}line-through opacity-50{% endif %}">
+                    {{ card.title }}</h4>
                 {% if card.description %}
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 {% if card.is_completed == 1 %}line-through opacity-50{% endif %}">{{ card.description }}</p>
+                <p
+                    class="text-xs text-gray-500 dark:text-gray-400 mb-2 {% if card.is_completed == 1 %}line-through opacity-50{% endif %}">
+                    {{ card.description }}</p>
                 {% endif %}
                 {% if card.link %}
-                <a href="{{ card.link }}" target="_blank" class="text-xs text-blue-500 hover:underline mb-2 block truncate">
+                <a href="{{ card.link }}" target="_blank"
+                    class="text-xs text-blue-500 hover:underline mb-2 block truncate">
                     🔗 {{ card.link|truncate(30) }}
                 </a>
                 {% endif %}
                 {% if card.file_path %}
-                <a href="{{ card.file_path }}" target="_blank" class="text-xs text-green-600 hover:underline mb-2 block truncate bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg">
+                <a href="{{ card.file_path }}" target="_blank"
+                    class="text-xs text-green-600 hover:underline mb-2 block truncate bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg">
                     📎 Anexo
                 </a>
                 {% endif %}
-                
+
                 {% if lists|length > 1 %}
                 <div class="mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
-                    <span class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1 block">Mover para:</span>
+                    <span class="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1 block">Mover
+                        para:</span>
                     <div class="flex gap-1 flex-wrap">
                         {% for other_list in lists %}
                         {% if other_list.id != lst.id %}
-                        <form method="post" action="/cliente/{{ lead.id }}/kanban/card/{{ card.id }}/move/{{ other_list.id }}">
-                            <button type="submit" class="text-[10px] px-2 py-1 bg-white dark:bg-[#2D2D2D] hover:bg-[#FF9F1C] hover:text-white transition-colors rounded-full text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10">
+                        <form method="post"
+                            action="/cliente/{{ lead.id }}/kanban/card/{{ card.id }}/move/{{ other_list.id }}">
+                            <button type="submit"
+                                class="text-[10px] px-2 py-1 bg-white dark:bg-[#2D2D2D] hover:bg-[#FF9F1C] hover:text-white transition-colors rounded-full text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10">
                                 {{ other_list.name|truncate(12) }}
                             </button>
                         </form>
@@ -116,9 +140,10 @@
             </div>
             {% endfor %}
         </div>
-        
+
         <!-- Add Card Button -->
-        <button onclick="openAddCardModal('{{ lst.id }}')" class="mt-3 w-full py-2 text-left text-sm text-gray-500 dark:text-gray-400 hover:text-[#FF9F1C] transition-colors flex items-center gap-2">
+        <button onclick="openAddCardModal('{{ lst.id }}')"
+            class="mt-3 w-full py-2 text-left text-sm text-gray-500 dark:text-gray-400 hover:text-[#FF9F1C] transition-colors flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
@@ -126,30 +151,36 @@
         </button>
     </div>
     {% endfor %}
-    
+
     <!-- Add List Button -->
     <div class="flex-shrink-0 w-80">
-        <button onclick="openAddListModal()" class="w-full py-4 bg-white/50 dark:bg-white/5 border-2 border-dashed border-gray-300 dark:border-white/10 rounded-2xl text-sm text-gray-500 dark:text-gray-400 hover:border-[#FF9F1C] hover:text-[#FF9F1C] transition-colors">
+        <button onclick="openAddListModal()"
+            class="w-full py-4 bg-white/50 dark:bg-white/5 border-2 border-dashed border-gray-300 dark:border-white/10 rounded-2xl text-sm text-gray-500 dark:text-gray-400 hover:border-[#FF9F1C] hover:text-[#FF9F1C] transition-colors">
             + Adicionar lista
         </button>
     </div>
 </div>
 
 <!-- Add List Modal -->
-<div id="addListModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[150] p-4">
-    <div class="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl border border-white/20 dark:border-white/10">
+<div id="addListModal"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[150] p-4">
+    <div
+        class="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl border border-white/20 dark:border-white/10">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold text-black dark:text-white">Nova Lista</h3>
-            <button onclick="closeAllModals()" class="text-gray-400 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors">
+            <button onclick="closeAllModals()"
+                class="text-gray-400 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
                 </svg>
             </button>
         </div>
         <form method="post" action="/cliente/{{ lead.id }}/kanban/add-lista">
             <input type="text" name="name" placeholder="Nome da lista" required
-                   class="w-full px-4 py-3 bg-[#F2EDE4] dark:bg-[#2D2D2D] rounded-2xl border border-white/50 dark:border-white/10 focus:outline-none focus:border-[#FF9F1C] mb-4 text-black dark:text-white">
-            <button type="submit" class="w-full py-4 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-2xl font-bold text-sm hover:opacity-90 transition-opacity">
+                class="w-full px-4 py-3 bg-[#F2EDE4] dark:bg-[#2D2D2D] rounded-2xl border border-white/50 dark:border-white/10 focus:outline-none focus:border-[#FF9F1C] mb-4 text-black dark:text-white">
+            <button type="submit"
+                class="w-full py-4 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-2xl font-bold text-sm hover:opacity-90 transition-opacity">
                 Criar Lista
             </button>
         </form>
@@ -158,48 +189,59 @@
 
 <!-- Add/Edit Card Modal -->
 <div id="cardModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[150] p-4">
-    <div class="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl border border-white/20 dark:border-white/10 max-h-[90vh] overflow-y-auto">
+    <div
+        class="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl border border-white/20 dark:border-white/10 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h3 id="cardModalTitle" class="text-xl font-bold text-black dark:text-white">Novo Cartão</h3>
-            <button onclick="closeAllModals()" class="text-gray-400 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors">
+            <button onclick="closeAllModals()"
+                class="text-gray-400 hover:text-black dark:text-gray-300 dark:hover:text-white transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
                 </svg>
             </button>
         </div>
         <form id="cardForm" method="post" enctype="multipart/form-data">
             <div class="mb-4">
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Título</label>
+                <label
+                    class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Título</label>
                 <input type="text" id="cardTitle" name="title" required
-                       class="w-full px-4 py-3 bg-[#F2EDE4] dark:bg-[#2D2D2D] rounded-2xl border border-white/50 dark:border-white/10 focus:outline-none focus:border-[#FF9F1C] text-black dark:text-white">
+                    class="w-full px-4 py-3 bg-[#F2EDE4] dark:bg-[#2D2D2D] rounded-2xl border border-white/50 dark:border-white/10 focus:outline-none focus:border-[#FF9F1C] text-black dark:text-white">
             </div>
             <div class="mb-4">
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Descrição</label>
+                <label
+                    class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Descrição</label>
                 <textarea id="cardDescription" name="description" rows="3"
-                          class="w-full px-4 py-3 bg-[#F2EDE4] dark:bg-[#2D2D2D] rounded-2xl border border-white/50 dark:border-white/10 focus:outline-none focus:border-[#FF9F1C] resize-none text-black dark:text-white"></textarea>
+                    class="w-full px-4 py-3 bg-[#F2EDE4] dark:bg-[#2D2D2D] rounded-2xl border border-white/50 dark:border-white/10 focus:outline-none focus:border-[#FF9F1C] resize-none text-black dark:text-white"></textarea>
             </div>
             <div class="mb-4">
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Cor</label>
+                <label
+                    class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Cor</label>
                 <div class="flex gap-3 mb-2">
                     {% for color in ['#ffffff', '#FF9F1C', '#FFBF69', '#B7F4B0', '#A7E3FF', '#FFA7D1', '#C7B7FF'] %}
-                    <button type="button" onclick="selectColor('{{ color }}')" 
-                            class="w-8 h-8 rounded-full border-2 border-gray-200 dark:border-white/10 hover:scale-110 transition-transform color-option" 
-                            data-color="{{ color }}" style="background-color: {{ color }};"></button>
+                    <button type="button" onclick="selectColor('{{ color }}')"
+                        class="w-8 h-8 rounded-full border-2 border-gray-200 dark:border-white/10 hover:scale-110 transition-transform color-option"
+                        data-color="{{ color }}" style="background-color: {{ color }};"></button>
                     {% endfor %}
                 </div>
                 <input type="hidden" id="cardColor" name="color" value="#ffffff">
             </div>
             <div class="mb-4">
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Link (opcional)</label>
+                <label
+                    class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Link
+                    (opcional)</label>
                 <input type="url" id="cardLink" name="link"
-                       class="w-full px-4 py-3 bg-[#F2EDE4] dark:bg-[#2D2D2D] rounded-2xl border border-white/50 dark:border-white/10 focus:outline-none focus:border-[#FF9F1C] text-black dark:text-white">
+                    class="w-full px-4 py-3 bg-[#F2EDE4] dark:bg-[#2D2D2D] rounded-2xl border border-white/50 dark:border-white/10 focus:outline-none focus:border-[#FF9F1C] text-black dark:text-white">
             </div>
             <div class="mb-6">
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Arquivo (opcional)</label>
+                <label
+                    class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 block">Arquivo
+                    (opcional)</label>
                 <input type="file" name="file"
-                       class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#2D2D2D] file:text-white dark:file:bg-[#F2EDE4] dark:file:text-[#1a1a1a] hover:file:opacity-90">
+                    class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#2D2D2D] file:text-white dark:file:bg-[#F2EDE4] dark:file:text-[#1a1a1a] hover:file:opacity-90">
             </div>
-            <button type="submit" class="w-full py-4 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-2xl font-bold text-sm hover:opacity-90 transition-opacity">
+            <button type="submit"
+                class="w-full py-4 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-2xl font-bold text-sm hover:opacity-90 transition-opacity">
                 Salvar Cartão
             </button>
         </form>
@@ -212,12 +254,12 @@
 <script>
     let deleteTimer = null;
     let deleteAction = null;
-    
+
     function openAddListModal() {
         document.getElementById('addListModal').classList.remove('hidden');
         document.getElementById('addListModal').classList.add('flex');
     }
-    
+
     function openAddCardModal(listId) {
         document.getElementById('cardModalTitle').textContent = 'Novo Cartão';
         document.getElementById('cardForm').action = `/cliente/{{ lead.id }}/kanban/lista/${listId}/add-card`;
@@ -225,11 +267,11 @@
         document.getElementById('cardDescription').value = '';
         document.getElementById('cardLink').value = '';
         selectColor('#ffffff');
-        
+
         document.getElementById('cardModal').classList.remove('hidden');
         document.getElementById('cardModal').classList.add('flex');
     }
-    
+
     function openEditCardModal(cardId, title, description, color, link) {
         document.getElementById('cardModalTitle').textContent = 'Editar Cartão';
         document.getElementById('cardForm').action = `/cliente/{{ lead.id }}/kanban/card/${cardId}/edit`;
@@ -237,11 +279,11 @@
         document.getElementById('cardDescription').value = description;
         document.getElementById('cardLink').value = link;
         selectColor(color);
-        
+
         document.getElementById('cardModal').classList.remove('hidden');
         document.getElementById('cardModal').classList.add('flex');
     }
-    
+
     function selectColor(color) {
         document.getElementById('cardColor').value = color;
         document.querySelectorAll('.color-option').forEach(el => {
@@ -251,24 +293,24 @@
             }
         });
     }
-    
+
     function closeAllModals() {
         document.querySelectorAll('#addListModal, #cardModal, #deleteConfirmModal').forEach(el => {
             el.classList.add('hidden');
             el.classList.remove('flex');
         });
     }
-    
+
     function openDeleteConfirm(type, id, name) {
         // Clear previous timer
         if (deleteTimer) {
             clearTimeout(deleteTimer);
             deleteTimer = null;
         }
-        
+
         document.getElementById('deleteItemName').textContent = name;
         document.getElementById('deleteCountdown').textContent = '10';
-        
+
         if (type === 'lista') {
             deleteAction = () => {
                 window.location.href = `/cliente/{{ lead.id }}/kanban/lista/${id}/delete`;
@@ -278,15 +320,15 @@
                 window.location.href = `/cliente/{{ lead.id }}/kanban/card/${id}/delete`;
             };
         }
-        
+
         document.getElementById('deleteConfirmModal').classList.remove('hidden');
         document.getElementById('deleteConfirmModal').classList.add('flex');
-        
+
         // Show modal content animation
         setTimeout(() => {
             document.getElementById('deleteModalContent').classList.remove('scale-95', 'opacity-0');
         }, 10);
-        
+
         // Start countdown
         let count = 10;
         deleteTimer = setInterval(() => {
@@ -299,7 +341,7 @@
             }
         }, 1000);
     }
-    
+
     // Cancel delete
     document.addEventListener('DOMContentLoaded', () => {
         const cancelBtn = document.getElementById('cancelDeleteBtn');
@@ -312,7 +354,7 @@
                 closeAllModals();
             });
         }
-        
+
         const forceDeleteBtn = document.getElementById('forceDeleteBtn');
         if (forceDeleteBtn) {
             forceDeleteBtn.addEventListener('click', () => {
@@ -324,7 +366,7 @@
             });
         }
     });
-    
+
     // Close on overlay click
     document.addEventListener('click', (e) => {
         if (['addListModal', 'cardModal', 'deleteConfirmModal'].includes(e.target.id)) {
@@ -337,7 +379,7 @@
             closeAllModals();
         }
     });
-    
+
     // Close on escape
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
@@ -348,118 +390,112 @@
             closeAllModals();
         }
     });
-    
-    // DRAG AND DROP FUNCTIONS
+
+    // --- DRAG AND DROP FUNCTIONS (ATUALIZADO PARA ORDENAÇÃO) ---
     let draggedCardId = null;
     let draggedCardEl = null;
-    let draggedListId = null;
-    
+
     function handleDragStart(e, cardId, listId) {
         draggedCardId = cardId;
-        draggedListId = listId;
         draggedCardEl = e.target.closest('[draggable="true"]');
-        
+
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", cardId);
-        
+
+        // Adiciona classe customizada 'dragging' para ignorá-lo no cálculo de posição
         setTimeout(() => {
             if (draggedCardEl) {
-                draggedCardEl.classList.add('opacity-50', 'scale-95');
+                draggedCardEl.classList.add('opacity-50', 'scale-95', 'dragging');
             }
         }, 0);
     }
-    
+
     function handleDragEnd(e) {
-        // Remove visual effects from all cards
         document.querySelectorAll('[draggable="true"]').forEach(card => {
-            card.classList.remove('opacity-50', 'scale-95', 'border-dashed', 'border-2');
+            card.classList.remove('opacity-50', 'scale-95', 'dragging');
         });
-        
-        // Remove highlight from all lists
+
         document.querySelectorAll('[data-list-id]').forEach(list => {
             list.classList.remove('ring-2', 'ring-green-400', 'dark:ring-green-500', 'bg-green-50', 'dark:bg-green-900/20');
         });
-        
+
         draggedCardId = null;
         draggedCardEl = null;
-        draggedListId = null;
     }
-    
+
     function handleDragOver(e) {
         e.preventDefault();
         const listEl = e.currentTarget;
         listEl.classList.add('ring-2', 'ring-green-400', 'dark:ring-green-500', 'bg-green-50', 'dark:bg-green-900/20');
-        
-        // Show placeholder when dragging over card
-        const draggedOverCard = e.target.closest('[draggable="true"]');
-        if (draggedOverCard && draggedOverCard !== draggedCardEl) {
-            document.querySelectorAll('.placeholder-card').forEach(el => el.remove());
-            
-            const placeholder = document.createElement('div');
-            placeholder.className = 'placeholder-card h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl';
-            draggedOverCard.parentNode.insertBefore(placeholder, draggedOverCard.nextSibling);
+
+        // Calcula qual elemento está abaixo do mouse para reordenar dinamicamente
+        const afterElement = getDragAfterElement(listEl, e.clientY);
+
+        if (draggedCardEl) {
+            if (afterElement == null) {
+                listEl.appendChild(draggedCardEl); // Joga pro final se não estiver em cima de ninguém
+            } else {
+                listEl.insertBefore(draggedCardEl, afterElement); // Insere antes do elemento focado
+            }
         }
     }
-    
-    function handleDragLeave(e) {
-        const listEl = e.currentTarget;
-        listEl.classList.remove('ring-2', 'ring-green-400', 'dark:ring-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+
+    // Função auxiliar matemática para descobrir exatamente onde o card deve "cair"
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('[draggable="true"]:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
-    
+
+    function handleDragLeave(e) {
+        // Remove a borda se o cursor sair da lista
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+            e.currentTarget.classList.remove('ring-2', 'ring-green-400', 'dark:ring-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+        }
+    }
+
     async function handleDrop(e, targetListId) {
         e.preventDefault();
-        
         if (!draggedCardId) return;
-        
-        document.querySelectorAll('.placeholder-card').forEach(el => el.remove());
-        
-        // Get all cards in target list, determine new order
-        const targetListEl = document.querySelector(`[data-list-id="${targetListId}"]`);
-        const cardsInTarget = Array.from(targetListEl.querySelectorAll('[draggable="true"]'));
-        
-        const cardOrder = [];
-        let inserted = false;
-        
-        cardsInTarget.forEach((card, index) => {
-            if (card.id === `card-${draggedCardId}`) {
-                // Skip the dragged card
-                return;
-            }
-            
-            // If we're inserting before this card
-            const rect = card.getBoundingClientRect();
-            const y = e.clientY;
-            
-            if (!inserted && y < rect.top + rect.height / 2) {
-                cardOrder.push(draggedCardId);
-                inserted = true;
-            }
-            
-            const cardIdMatch = card.id.match(/card-(\d+)/);
-            if (cardIdMatch) {
-                cardOrder.push(parseInt(cardIdMatch[1]));
-            }
-        });
-        
-        if (!inserted) {
-            cardOrder.push(draggedCardId);
-        }
-        
-        // Send order to server
-        const formData = new FormData();
-        formData.append('list_id', targetListId);
-        cardOrder.forEach(id => formData.append('card_order[]', id));
-        
+
+        const listEl = e.currentTarget;
+        listEl.classList.remove('ring-2', 'ring-green-400', 'dark:ring-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+
+        // Mapeia todos os cards na nova ordem em que ficaram visualmente no HTML
+        const cards = [...listEl.querySelectorAll('[draggable="true"]')];
+        const cardOrder = cards.map(card => card.id.replace('card-', ''));
+
         try {
-            await fetch(`/cliente/{{ lead.id }}/kanban/reorder`, {
+            // Cria um FormData para bater na sua rota /reorder
+            const formData = new FormData();
+            formData.append('list_id', targetListId);
+            cardOrder.forEach(id => formData.append('card_order[]', id));
+
+            const response = await fetch(`/cliente/{{ lead.id }}/kanban/reorder`, {
                 method: 'POST',
                 body: formData
             });
-            
-            window.location.reload();
+
+            if (response.ok) {
+                // Dá um reload para atualizar o status (concluído, a iniciar, etc.) via backend
+                window.location.reload();
+            } else {
+                console.error("Erro no servidor:", response.status);
+                alert("O servidor recusou a mudança de ordem. Verifique o console.");
+                window.location.reload(); // Reverte a UI caso o backend falhe
+            }
         } catch (err) {
-            console.error('Error reordering cards:', err);
-            alert('Ocorreu um erro ao reordenar os cartões');
+            console.error('Erro de conexão:', err);
+            alert('Erro ao tentar reordenar o cartão.');
+            window.location.reload();
         }
     }
 </script>

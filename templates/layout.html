@@ -60,7 +60,8 @@
         <div class="flex items-center gap-8">
             <a href="javascript:location.reload()"
                 class="text-2xl font-bold hover:opacity-70 transition-opacity">Trazzo</a>
-            <div class="bg-white dark:bg-[#2D2D2D] rounded-full px-2 py-1 flex gap-2 shadow-sm border border-gray-100 dark:border-white/10">
+            <div
+                class="bg-white dark:bg-[#2D2D2D] rounded-full px-2 py-1 flex gap-2 shadow-sm border border-gray-100 dark:border-white/10">
                 <a href="/"
                     class="px-6 py-2 text-sm font-medium {% if request.url.path == '/' %}nav-item-active{% endif %}">Dashboard</a>
                 <a href="/vendas"
@@ -70,10 +71,12 @@
             </div>
         </div>
         <div class="flex items-center gap-4">
-            <button onclick="toggleSidebar('settingsSidebar')" class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors">
+            <button onclick="toggleSidebar('settingsSidebar')"
+                class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors">
                 <img src="https://img.icons8.com/material-outlined/24/000000/settings.png" alt="Settings">
             </button>
-            <button onclick="toggleSidebar('notificationsSidebar')" class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full relative transition-colors">
+            <button onclick="toggleSidebar('notificationsSidebar')"
+                class="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full relative transition-colors">
                 <img src="https://img.icons8.com/material-outlined/24/000000/appointment-reminders.png"
                     alt="Notifications">
                 {% if notifications and notifications|length > 0 %}
@@ -96,7 +99,8 @@
         class="fixed top-0 right-0 h-full w-80 bg-[#F2EDE4] dark:bg-[#1a1a1a] shadow-2xl z-[70] transform translate-x-full transition-transform duration-300 ease-in-out p-8 border-l dark:border-white/10">
         <div class="flex justify-between items-center mb-8">
             <h3 class="text-2xl font-bold">Notificações</h3>
-            <button onclick="toggleSidebar('notificationsSidebar')" class="text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors">
+            <button onclick="toggleSidebar('notificationsSidebar')"
+                class="text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                     </path>
@@ -111,7 +115,9 @@
                 <div class="font-bold text-sm mb-1 text-black dark:text-white">{{ notif.title }}</div>
                 <div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-2">{{ notif.message }}</div>
                 {% if notif.link %}
-                <a href="{{ notif.link }}" class="text-[10px] font-bold text-blue-500 hover:underline uppercase tracking-wider">Ver registro →</a>
+                <a href="{{ notif.link }}"
+                    class="text-[10px] font-bold text-blue-500 hover:underline uppercase tracking-wider">Ver registro
+                    →</a>
                 {% endif %}
             </div>
             {% endfor %}
@@ -128,7 +134,8 @@
         class="fixed top-0 right-0 h-full w-80 bg-[#F2EDE4] dark:bg-[#1a1a1a] shadow-2xl z-[70] transform translate-x-full transition-transform duration-300 ease-in-out p-8 border-l dark:border-white/10">
         <div class="flex justify-between items-center mb-8">
             <h3 class="text-2xl font-bold">Configurações</h3>
-            <button onclick="toggleSidebar('settingsSidebar')" class="text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors">
+            <button onclick="toggleSidebar('settingsSidebar')"
+                class="text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                     </path>
@@ -139,19 +146,32 @@
             <div class="bg-white dark:bg-[#2D2D2D] p-6 rounded-2xl shadow-sm">
                 <h4 class="font-bold text-sm mb-4">Perfil</h4>
                 <div class="space-y-3">
-                    <button class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Editar
+                    <button
+                        class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Editar
                         perfil</button>
-                    <button class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Alterar
+                    <button
+                        class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Alterar
                         senha</button>
                 </div>
             </div>
             <div class="bg-white dark:bg-[#2D2D2D] p-6 rounded-2xl shadow-sm">
                 <h4 class="font-bold text-sm mb-4 text-black dark:text-white">Sistema</h4>
-                <div class="space-y-3">
-                    <button onclick="toggleDarkMode()"
-                        class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Alternar
-                        Modo Escuro</button>
-                    <button class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Idioma:
+                <div class="space-y-4">
+                    <!-- Alternador Animado de Tema -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-600 dark:text-gray-400">Modo Escuro</span>
+                        <button type="button" onclick="toggleDarkMode()"
+                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-gray-300 dark:bg-green-500"
+                            role="switch" aria-checked="false" id="darkModeSwitch">
+                            <span class="sr-only">Alternar modo escuro</span>
+                            <span
+                                class="pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-5">
+                                <!-- Ícone Opcional dentro da bolinha (Sol/Lua) -->
+                            </span>
+                        </button>
+                    </div>
+                    <button
+                        class="w-full text-left text-xs text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Idioma:
                         Português</button>
                 </div>
             </div>
@@ -166,25 +186,33 @@
     </main>
 
     <!-- Global Delete Confirmation Modal -->
-    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[200] p-4">
-        <div class="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-white/20 dark:border-white/10 transform transition-all scale-95 opacity-0 duration-300" id="deleteModalContent">
+    <div id="deleteConfirmModal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[200] p-4">
+        <div class="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-10 w-full max-w-md shadow-2xl border border-white/20 dark:border-white/10 transform transition-all scale-95 opacity-0 duration-300"
+            id="deleteModalContent">
             <div class="text-center">
-                <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div
+                    class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                     <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                        </path>
                     </svg>
                 </div>
                 <h3 class="text-2xl font-bold mb-4 text-black dark:text-white">Excluir Registro?</h3>
                 <p class="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-                    Você está prestes a excluir <span id="deleteItemName" class="font-bold text-black dark:text-white"></span>. 
+                    Você está prestes a excluir <span id="deleteItemName"
+                        class="font-bold text-black dark:text-white"></span>.
                     <br>Esta ação será permanente em:
                     <span id="deleteCountdown" class="block text-4xl font-black text-red-500 mt-2">10</span>
                 </p>
                 <div class="flex flex-col gap-3">
-                    <button id="cancelDeleteBtn" class="w-full py-4 bg-[#B7F4B0] dark:bg-[#B7F4B0] text-black rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg">
+                    <button id="cancelDeleteBtn"
+                        class="w-full py-4 bg-[#B7F4B0] dark:bg-[#B7F4B0] text-black rounded-2xl font-bold text-lg hover:opacity-90 transition-all shadow-lg">
                         Reverter Ação (Manter)
                     </button>
-                    <button id="forceDeleteBtn" class="w-full py-3 text-gray-400 dark:text-gray-500 hover:text-red-500 text-sm font-medium transition-colors">
+                    <button id="forceDeleteBtn"
+                        class="w-full py-3 text-gray-400 dark:text-gray-500 hover:text-red-500 text-sm font-medium transition-colors">
                         Excluir agora
                     </button>
                 </div>
@@ -193,9 +221,12 @@
     </div>
 
     <!-- Success Toast -->
-    <div id="successToast" class="fixed bottom-8 right-8 bg-[#2D2D2D] text-white px-8 py-4 rounded-2xl shadow-2xl z-[200] translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
+    <div id="successToast"
+        class="fixed bottom-8 right-8 bg-[#2D2D2D] text-white px-8 py-4 rounded-2xl shadow-2xl z-[200] translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
         <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+            </svg>
         </div>
         <span id="successToastMsg" class="font-bold text-sm">Excluído com sucesso!</span>
     </div>
@@ -203,11 +234,30 @@
     {% block scripts %}{% endblock %}
 
     <script>
+        // Função para atualizar visualmente o switch com base no tema atual
+        function updateThemeSwitch() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const darkModeSwitch = document.getElementById('darkModeSwitch');
+            if (darkModeSwitch) {
+                if (isDark) {
+                    darkModeSwitch.classList.remove('bg-gray-300');
+                    darkModeSwitch.classList.add('bg-green-500');
+                    darkModeSwitch.setAttribute('aria-checked', 'true');
+                } else {
+                    darkModeSwitch.classList.remove('bg-green-500');
+                    darkModeSwitch.classList.add('bg-gray-300');
+                    darkModeSwitch.setAttribute('aria-checked', 'false');
+                }
+            }
+        }
+
+        // Executa ao carregar a página
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
+        document.addEventListener('DOMContentLoaded', updateThemeSwitch);
 
         function toggleDarkMode() {
             if (document.documentElement.classList.contains('dark')) {
@@ -217,8 +267,9 @@
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('color-theme', 'dark');
             }
+            updateThemeSwitch();
         }
-        
+
         function toggleSidebar(id) {
             const sidebar = document.getElementById(id);
             const overlay = document.getElementById('sidebarOverlay');

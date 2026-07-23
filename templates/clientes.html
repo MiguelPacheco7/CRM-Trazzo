@@ -175,9 +175,40 @@
             <div class="grid grid-cols-2 gap-5">
                 <div>
                     <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Tipo de Projeto</label>
-                    <input type="text" name="project_type" id="edit_type" required
-                        placeholder="Digite o tipo de projeto"
-                        class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner outline-none">
+                    <div class="relative">
+                        <select id="edit_type_select" onchange="handleProjectTypeChange(this)"
+                            class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner outline-none appearance-none">
+
+                            <!-- Tipos de projeto padrão fixos (igual na página de Vendas) -->
+                            <option value="Marca autêntica">Marca autêntica</option>
+                            <option value="Posicionamento">Posicionamento</option>
+                            <option value="Consultoria">Consultoria</option>
+
+                            <!-- Loop para renderizar apenas os serviços novos criados pelo usuário que não sejam os padrão -->
+                            {% for category in dynamic_categories %}
+                            {% if category not in ['Marca autêntica', 'Posicionamento', 'Consultoria'] %}
+                            <option value="{{ category }}">{{ category }}</option>
+                            {% endif %}
+                            {% endfor %}
+
+                            <option value="novo" class="font-bold text-[#FF9F1C]">+ Adicionar novo serviço...</option>
+                        </select>
+                        <!-- Setinha customizada do dropdown -->
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Campo de texto que aparece apenas se escolher "Adicionar novo" -->
+                    <input type="text" id="edit_type_new" placeholder="Digite o nome do novo serviço"
+                        class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner outline-none mt-3 hidden focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4]">
+
+                    <!-- Este é o campo real que envia o dado para o banco -->
+                    <input type="hidden" name="project_type" id="edit_type_final">
                 </div>
                 <div>
                     <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Valor do Projeto
@@ -237,7 +268,29 @@
         document.getElementById('edit_company').value = data.company === 'None' ? '' : data.company;
         document.getElementById('edit_social').value = data.social === 'None' ? '' : data.social;
         document.getElementById('edit_phone').value = data.phone === 'None' ? '' : data.phone;
-        document.getElementById('edit_type').value = data.type;
+
+        // --- NOVA LÓGICA DO TIPO DE PROJETO ---
+        const typeVal = data.type;
+        const selectEl = document.getElementById('edit_type_select');
+        const newEl = document.getElementById('edit_type_new');
+
+        // Verifica se o tipo do projeto já existe na lista do dropdown
+        let exists = false;
+        for (let i = 0; i < selectEl.options.length; i++) {
+            if (selectEl.options[i].value === typeVal) exists = true;
+        }
+
+        if (exists) {
+            selectEl.value = typeVal;
+            newEl.classList.add('hidden'); // Esconde o input de texto
+        } else {
+            selectEl.value = 'novo';
+            newEl.value = typeVal;
+            newEl.classList.remove('hidden'); // Mostra o input de texto
+        }
+        updateFinalProjectType(); // Atualiza o input invisível que vai pro banco
+        // -------------------------------------
+
         document.getElementById('edit_value').value = data.value;
         document.getElementById('edit_scope').value = data.scope === 'None' ? '' : data.scope;
         document.getElementById('edit_obs').value = data.obs === 'None' ? '' : data.obs;
@@ -247,20 +300,45 @@
         document.getElementById('editClientModal').classList.remove('hidden');
     }
 
+    // Funções para gerenciar o dropdown e o campo de texto novo
+    function handleProjectTypeChange(select) {
+        const newEl = document.getElementById('edit_type_new');
+        if (select.value === 'novo') {
+            newEl.classList.remove('hidden');
+            newEl.required = true;
+            newEl.value = '';
+            newEl.focus();
+        } else {
+            newEl.classList.add('hidden');
+            newEl.required = false;
+        }
+        updateFinalProjectType();
+    }
+
+    function updateFinalProjectType() {
+        const selectVal = document.getElementById('edit_type_select').value;
+        const newTypeVal = document.getElementById('edit_type_new').value;
+        document.getElementById('edit_type_final').value = selectVal === 'novo' ? newTypeVal : selectVal;
+    }
+
+    // Fica escutando a digitação no input novo para salvar em tempo real
+    document.addEventListener('DOMContentLoaded', () => {
+        const newTypeInput = document.getElementById('edit_type_new');
+        if (newTypeInput) {
+            newTypeInput.addEventListener('input', updateFinalProjectType);
+        }
+    });
+
     function toggleDeleteDropdown(event, id) {
         event.stopPropagation();
         const dropdown = document.getElementById(`dropdown-${id}`);
         const isHidden = dropdown.classList.contains('hidden');
-
-        // Fecha todos os outros dropdowns
         document.querySelectorAll('.delete-dropdown').forEach(d => d.classList.add('hidden'));
-
         if (isHidden) {
             dropdown.classList.remove('hidden');
         }
     }
 
-    // Fecha dropdowns ao clicar fora
     document.addEventListener('click', () => {
         document.querySelectorAll('.delete-dropdown').forEach(d => d.classList.add('hidden'));
     });
@@ -276,7 +354,6 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
 
-        // Trigger animation
         setTimeout(() => {
             content.classList.remove('scale-95', 'opacity-0');
         }, 10);
@@ -284,7 +361,6 @@
         let timeLeft = 10;
         countdownEl.innerText = timeLeft;
 
-        // Limpa timers anteriores se existirem
         clearInterval(countdownInterval);
         clearTimeout(deleteTimer);
 
@@ -297,14 +373,12 @@
             }
         }, 1000);
 
-        // Botão Reverter
         document.getElementById('cancelDeleteBtn').onclick = () => {
             clearInterval(countdownInterval);
             clearTimeout(deleteTimer);
             closeDeleteModal();
         };
 
-        // Botão Forçar Exclusão
         document.getElementById('forceDeleteBtn').onclick = () => {
             clearInterval(countdownInterval);
             executeDelete(currentDeleteId);
@@ -323,14 +397,11 @@
 
     async function executeDelete(id) {
         closeDeleteModal();
-
-        // Feedback visual imediato
         const card = document.getElementById(`card-${id}`);
         if (card) {
             card.style.opacity = '0.5';
             card.style.filter = 'grayscale(1)';
         }
-
         try {
             const response = await fetch(`/delete_lead/${id}`, { method: 'POST' });
             if (response.ok) {
@@ -340,8 +411,6 @@
                     card.style.opacity = '0';
                     setTimeout(() => {
                         card.remove();
-                        // Se não houver mais clientes na categoria, poderia mostrar o empty state, 
-                        // mas o reload é mais garantido para o estado do banco.
                         window.location.reload();
                     }, 300);
                 }
