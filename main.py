@@ -177,51 +177,45 @@ async def dashboard(
     monthly_leads = [monthly_leads_count[i] for i in range(12)]
 
     # Valor e Volume por tipo de projeto (Apenas leads com status 'Fechado')
-    # 1. Coleta dinamicamente todos os tipos de projeto existentes no banco de dados
-    all_project_types = list(set([l.project_type for l in leads if l.project_type]))
-    if not all_project_types:
-        all_project_types = [
-            "Marca autêntica",
-            "Posicionamento",
-            "Consultoria",
-        ]  # Fallback se estiver vazio
+    # 1. Define os serviços principais e inicializa os tipos
+    servicos_principais = ["Posicionamento", "Consultoria", "Marca autêntica"]
+    all_project_types = servicos_principais + ["Outros serviços"]
 
-    # 2. Faturamento e Volume por tipo gerados dinamicamente
-    revenue_by_type = {
-        pt: sum(
-            l.value for l in leads_fechados_list if l.project_type == pt and l.value
-        )
-        for pt in all_project_types
-    }
-    volume_by_type = {
-        pt: len([l for l in leads_fechados_list if l.project_type == pt])
-        for pt in all_project_types
-    }
-
-    # 3. Taxa de conversão por tipo de projeto
-    def calculate_conversion_by_type(leads_list, project_type):
-        type_leads = [l for l in leads_list if l.project_type == project_type]
-        type_fechados = [l for l in type_leads if l.status == "Fechado"]
-        if len(type_leads) > 0:
-            return round(len(type_fechados) / len(type_leads) * 100, 1)
-        return 0
-
-    conversion_by_type = {
-        pt: calculate_conversion_by_type(leads, pt) for pt in all_project_types
-    }
-
-    # 4. Dados detalhados por tipo gerados dinamicamente
+    # 2. Inicializa os dicionários zerados
+    revenue_by_type = {pt: 0.0 for pt in all_project_types}
+    volume_by_type = {pt: 0 for pt in all_project_types}
     type_details = {
-        pt: {
-            "total": len([l for l in leads if l.project_type == pt]),
-            "fechados": len([l for l in leads_fechados_list if l.project_type == pt]),
-            "perdidos": len(
-                [l for l in leads if l.project_type == pt and l.status == "Não fechou"]
-            ),
-        }
-        for pt in all_project_types
+        pt: {"total": 0, "fechados": 0, "perdidos": 0} for pt in all_project_types
     }
 
+    # 3. Calcula volume, faturamento e detalhes (Agrupando em Outros Serviços)
+    for l in leads:
+        # Se não for principal, vira "Outros serviços"
+        chave = (
+            l.project_type
+            if l.project_type in servicos_principais
+            else "Outros serviços"
+        )
+
+        type_details[chave]["total"] += 1
+
+        if l.status == "Fechado":
+            type_details[chave]["fechados"] += 1
+            volume_by_type[chave] += 1
+            if l.value:
+                revenue_by_type[chave] += l.value
+        elif l.status == "Não fechou":
+            type_details[chave]["perdidos"] += 1
+
+    # 4. Taxa de conversão agrupada
+    conversion_by_type = {}
+    for pt in all_project_types:
+        if type_details[pt]["total"] > 0:
+            conversion_by_type[pt] = round(
+                (type_details[pt]["fechados"] / type_details[pt]["total"]) * 100, 1
+            )
+        else:
+            conversion_by_type[pt] = 0
     # Métricas de conversão
     leads_fechados = len(leads_fechados_list)
     leads_perdidos = len([l for l in leads if l.status == "Não fechou"])

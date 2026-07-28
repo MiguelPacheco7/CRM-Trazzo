@@ -6,37 +6,54 @@
     <div class="col-span-5 bg-[#FDF8E1] dark:bg-[#2D2D2D] rounded-[2rem] p-8 shadow-sm border dark:border-white/10">
         <div class="flex justify-between items-start mb-8">
             <h2 class="text-3xl font-bold text-black dark:text-white">Conversão</h2>
-            <div class="bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] px-4 py-1 rounded-full text-sm font-bold">Ano</div>
+            <div
+                class="bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] px-4 py-1 rounded-full text-sm font-bold">
+                Ano</div>
         </div>
-        <div id="conversion-value" class="text-[10rem] font-bold leading-none mb-4 text-black dark:text-[#B7F4B0]">{{ conversion_rate|int }}%</div>
+        <div id="conversion-value" class="text-[10rem] font-bold leading-none mb-4 text-black dark:text-[#B7F4B0]">{{
+            conversion_rate|int }}%</div>
         <div class="flex gap-8 text-sm text-gray-600 dark:text-gray-400">
-            <span>Fechados <strong id="fechados-count" class="text-black dark:text-white">{{ leads_fechados }}</strong></span>
-            <span>Perdidos <strong id="perdidos-count" class="text-black dark:text-white">{{ leads_perdidos }}</strong></span>
+            <span>Fechados <strong id="fechados-count" class="text-black dark:text-white">{{ leads_fechados
+                    }}</strong></span>
+            <span>Perdidos <strong id="perdidos-count" class="text-black dark:text-white">{{ leads_perdidos
+                    }}</strong></span>
         </div>
         <div class="flex gap-2 mt-8">
-            <button onclick="toggleConversion('all')" id="btn-conv-all" class="px-3 py-1 bg-[#2D2D2D] text-white dark:bg-[#F2EDE4] dark:text-[#1a1a1a] rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Todos</button>
-            <button onclick="toggleConversion('Posicionamento')" id="btn-conv-Posicionamento" class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Posicionamento</button>
-            <button onclick="toggleConversion('Consultoria')" id="btn-conv-Consultoria" class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Consultoria</button>
-            <button onclick="toggleConversion('Marca autêntica')" id="btn-conv-Marca_autentica" class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Marca autêntica</button>
+            <button onclick="toggleConversion('all')" id="btn-conv-all"
+                class="px-3 py-1 bg-[#2D2D2D] text-white dark:bg-[#F2EDE4] dark:text-[#1a1a1a] rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Todos</button>
+            <button onclick="toggleConversion('Posicionamento')" id="btn-conv-Posicionamento"
+                class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Posicionamento</button>
+            <button onclick="toggleConversion('Consultoria')" id="btn-conv-Consultoria"
+                class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Consultoria</button>
+            <button onclick="toggleConversion('Marca autêntica')" id="btn-conv-Marca_autentica"
+                class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Marca
+                autêntica</button>
+            <button onclick="toggleConversion('Outros serviços')" id="btn-conv-Outros_servicos"
+                class="px-3 py-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs border border-gray-200 dark:border-white/10 transition-all font-bold">Outros
+                serviços</button>
         </div>
     </div>
 
     <!-- Leads -->
-    <div class="col-span-3 bg-[#B7F4B0] dark:bg-[#2D2D2D] rounded-[2rem] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden border dark:border-white/10">
+    <div
+        class="col-span-3 bg-[#B7F4B0] dark:bg-[#2D2D2D] rounded-[2rem] p-8 shadow-sm flex flex-col justify-between relative overflow-hidden border dark:border-white/10">
         <div class="flex justify-between items-start z-10">
             <h2 class="text-3xl font-bold text-black dark:text-white">Leads</h2>
             <div class="flex bg-black/10 dark:bg-white/10 rounded-full p-1">
-                <button onclick="toggleLeads('month')" id="btnLeadsMonth" class="px-3 py-1 rounded-full text-[10px] font-bold transition-all bg-white text-black shadow-sm">Mês</button>
-                <button onclick="toggleLeads('year')" id="btnLeadsYear" class="px-3 py-1 rounded-full text-[10px] font-bold transition-all text-black/60 dark:text-white/60">Ano</button>
+                <button onclick="toggleLeads('month')" id="btnLeadsMonth"
+                    class="px-3 py-1 rounded-full text-[10px] font-bold transition-all bg-white text-black shadow-sm">Mês</button>
+                <button onclick="toggleLeads('year')" id="btnLeadsYear"
+                    class="px-3 py-1 rounded-full text-[10px] font-bold transition-all text-black/60 dark:text-white/60">Ano</button>
             </div>
         </div>
-        
+
         <div class="z-10">
             <div id="leadsValue" class="text-8xl font-bold transition-all duration-300 text-black dark:text-[#B7F4B0]">
                 {{ (monthly_leads or [])[now.month - 1] if monthly_leads else 0 }}
             </div>
             <div id="leadsLabel" class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                Leads em {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][now.month - 1] }}
+                Leads em {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro',
+                'Outubro', 'Novembro', 'Dezembro'][now.month - 1] }}
             </div>
         </div>
 
@@ -47,14 +64,17 @@
     <!-- Faturamento Donut -->
     <div class="col-span-4 bg-white dark:bg-[#2D2D2D] rounded-[2rem] p-8 shadow-sm border dark:border-white/10">
         <div class="flex justify-end gap-2 mb-4">
-            <button onclick="toggleDonut('volume')" id="btnDonutVolume" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs font-bold transition-all">Volume</button>
-            <button onclick="toggleDonut('revenue')" id="btnDonutRevenue" class="px-4 py-1 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-full text-xs font-bold transition-all">Faturamento</button>
+            <button onclick="toggleDonut('volume')" id="btnDonutVolume"
+                class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-300 rounded-full text-xs font-bold transition-all">Volume</button>
+            <button onclick="toggleDonut('revenue')" id="btnDonutRevenue"
+                class="px-4 py-1 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-full text-xs font-bold transition-all">Faturamento</button>
         </div>
         <div class="relative w-56 h-56 mx-auto mb-8">
             <!-- Chart.js Doughnut -->
             <canvas id="revenueDonutChart"></canvas>
             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span id="donutTotalValue" class="text-sm font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(total_revenue or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</span>
+                <span id="donutTotalValue" class="text-sm font-bold text-black dark:text-white">R$ {{
+                    "{:,.2f}".format(total_revenue or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</span>
                 <span id="donutTotalLabel" class="text-xs text-gray-500 dark:text-gray-400">Total</span>
             </div>
         </div>
@@ -64,21 +84,36 @@
                     <div class="w-3 h-3 rounded-full bg-[#FF9F1C]"></div>
                     <span class="text-gray-600 dark:text-gray-400">Posicionamento</span>
                 </div>
-                <span id="val-Posicionamento" class="font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(revenue_by_type['Posicionamento'] or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</span>
+                <span id="val-Posicionamento" class="font-bold text-black dark:text-white">R$ {{
+                    "{:,.2f}".format(revenue_by_type['Posicionamento'] or 0).replace(',', 'v').replace('.',
+                    ',').replace('v', '.') }}</span>
             </div>
             <div class="flex justify-between items-center text-sm">
                 <div class="flex items-center gap-2">
                     <div class="w-3 h-3 rounded-full bg-[#FFBF69]"></div>
                     <span class="text-gray-600 dark:text-gray-400">Marca autêntica</span>
                 </div>
-                <span id="val-Marca-autentica" class="font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(revenue_by_type['Marca autêntica'] or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</span>
+                <span id="val-Marca-autentica" class="font-bold text-black dark:text-white">R$ {{
+                    "{:,.2f}".format(revenue_by_type['Marca autêntica'] or 0).replace(',', 'v').replace('.',
+                    ',').replace('v', '.') }}</span>
             </div>
             <div class="flex justify-between items-center text-sm">
                 <div class="flex items-center gap-2">
                     <div class="w-3 h-3 rounded-full bg-[#B7F4B0]"></div>
                     <span class="text-gray-600 dark:text-gray-400">Consultoria</span>
                 </div>
-                <span id="val-Consultoria" class="font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(revenue_by_type['Consultoria'] or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</span>
+                <span id="val-Consultoria" class="font-bold text-black dark:text-white">R$ {{
+                    "{:,.2f}".format(revenue_by_type['Consultoria'] or 0).replace(',', 'v').replace('.',
+                    ',').replace('v', '.') }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-[#9CA3AF]"></div>
+                    <span class="text-gray-600 dark:text-gray-400">Outros serviços</span>
+                </div>
+                <span id="val-Outros-servicos" class="font-bold text-black dark:text-white">R$ {{
+                    "{:,.2f}".format(revenue_by_type['Outros serviços'] or 0).replace(',', 'v').replace('.',
+                    ',').replace('v', '.') }}</span>
             </div>
         </div>
     </div>
@@ -88,19 +123,25 @@
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-2xl font-bold text-black dark:text-white">Resultados</h2>
             <div class="flex gap-2">
-                <button onclick="updateChart('year', event)" id="btn-chart-year" class="px-4 py-1 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-full text-xs font-bold">1A</button>
-                <button onclick="updateChart('6m', event)" id="btn-chart-6m" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">6M</button>
-                <button onclick="updateChart('3m', event)" id="btn-chart-3m" class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">3M</button>
+                <button onclick="updateChart('year', event)" id="btn-chart-year"
+                    class="px-4 py-1 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-full text-xs font-bold">1A</button>
+                <button onclick="updateChart('6m', event)" id="btn-chart-6m"
+                    class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">6M</button>
+                <button onclick="updateChart('3m', event)" id="btn-chart-3m"
+                    class="px-4 py-1 bg-gray-100 dark:bg-[#1a1a1a] dark:text-gray-400 rounded-full text-xs font-bold">3M</button>
             </div>
         </div>
         <div class="grid grid-cols-2 gap-8 mb-8">
             <div>
                 <div class="text-gray-500 dark:text-gray-400 text-sm">Total Acumulado</div>
-                <div class="text-2xl font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(total_revenue or 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</div>
+                <div class="text-2xl font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format(total_revenue or
+                    0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</div>
             </div>
             <div>
                 <div class="text-gray-500 dark:text-gray-400 text-sm">Média por Cliente</div>
-                <div class="text-2xl font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format((total_revenue / total_clients) if total_clients > 0 else 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}</div>
+                <div class="text-2xl font-bold text-black dark:text-white">R$ {{ "{:,.2f}".format((total_revenue /
+                    total_clients) if total_clients > 0 else 0).replace(',', 'v').replace('.', ',').replace('v', '.') }}
+                </div>
             </div>
         </div>
         <!-- Chart.js Container -->
@@ -114,17 +155,24 @@
         <h2 class="text-2xl font-bold mb-6 text-black dark:text-white">Calendário</h2>
         <div class="grid grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             {% for month in full_calendar %}
-            <div onclick="openCalendarModal({{ loop.index0 }})" class="bg-[#F2EDE4] dark:bg-[#1a1a1a] rounded-2xl p-4 hover:bg-[#EDE8DE] dark:hover:bg-white/5 transition-colors cursor-pointer group border dark:border-white/5">
+            <div onclick="openCalendarModal({{ loop.index0 }})"
+                class="bg-[#F2EDE4] dark:bg-[#1a1a1a] rounded-2xl p-4 hover:bg-[#EDE8DE] dark:hover:bg-white/5 transition-colors cursor-pointer group border dark:border-white/5">
                 <div class="flex justify-between items-center mb-3">
                     <div class="text-sm font-bold text-black dark:text-white">{{ month.name }}</div>
-                    <div class="text-[10px] bg-white dark:bg-[#2D2D2D] px-2 py-0.5 rounded-full font-bold text-gray-500 dark:text-gray-400">{{ month['items']|length }}</div>
+                    <div
+                        class="text-[10px] bg-white dark:bg-[#2D2D2D] px-2 py-0.5 rounded-full font-bold text-gray-500 dark:text-gray-400">
+                        {{ month['items']|length }}</div>
                 </div>
                 <div class="flex -space-x-2 overflow-hidden">
                     {% for item in month['items'][:3] %}
-                    <img src="{{ item.photo }}" class="w-8 h-8 rounded-full border-2 border-white dark:border-[#2D2D2D] object-cover" title="{{ item.name }}">
+                    <img src="{{ item.photo }}"
+                        class="w-8 h-8 rounded-full border-2 border-white dark:border-[#2D2D2D] object-cover"
+                        title="{{ item.name }}">
                     {% endfor %}
                     {% if month['items']|length > 3 %}
-                    <div class="w-8 h-8 rounded-full border-2 border-white dark:border-[#2D2D2D] bg-white dark:bg-[#2D2D2D] flex items-center justify-center text-[10px] font-bold text-gray-400">+{{ month['items']|length - 3 }}</div>
+                    <div
+                        class="w-8 h-8 rounded-full border-2 border-white dark:border-[#2D2D2D] bg-white dark:bg-[#2D2D2D] flex items-center justify-center text-[10px] font-bold text-gray-400">
+                        +{{ month['items']|length - 3 }}</div>
                     {% endif %}
                     {% if not month['items'] %}
                     <div class="text-[10px] text-gray-400 italic">Vazio</div>
@@ -137,24 +185,31 @@
 </div>
 
 <!-- Modal Calendário Detalhado -->
-<div id="calendarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[150] p-4">
-    <div class="bg-[#F2EDE4] dark:bg-[#1a1a1a] rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl border border-white/20 dark:border-white/10 transform transition-all scale-95 opacity-0 duration-300" id="calendarModalContent">
+<div id="calendarModal"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[150] p-4">
+    <div class="bg-[#F2EDE4] dark:bg-[#1a1a1a] rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl border border-white/20 dark:border-white/10 transform transition-all scale-95 opacity-0 duration-300"
+        id="calendarModalContent">
         <div class="flex justify-between items-center mb-8">
             <div>
                 <h3 id="modalMonthName" class="text-3xl font-bold text-black dark:text-white">Janeiro</h3>
                 <p class="text-gray-500 dark:text-gray-400 text-sm">Leads e Projetos deste mês</p>
             </div>
-            <button onclick="closeCalendarModal()" class="text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <button onclick="closeCalendarModal()"
+                class="text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
             </button>
         </div>
-        
+
         <div id="modalItemsList" class="space-y-4 max-h-[50vh] overflow-y-auto pr-4 custom-scrollbar">
             <!-- Items will be injected here via JS -->
         </div>
 
         <div class="mt-8 pt-6 border-t border-black/5 dark:border-white/5 flex justify-end">
-            <button onclick="closeCalendarModal()" class="px-8 py-3 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-2xl font-bold text-sm hover:opacity-90 transition-opacity">Fechar</button>
+            <button onclick="closeCalendarModal()"
+                class="px-8 py-3 bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] rounded-2xl font-bold text-sm hover:opacity-90 transition-opacity">Fechar</button>
         </div>
     </div>
 </div>
@@ -163,15 +218,18 @@
     .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
     }
+
     .custom-scrollbar::-webkit-scrollbar-track {
         background: transparent;
     }
+
     .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(0,0,0,0.1);
+        background: rgba(0, 0, 0, 0.1);
         border-radius: 10px;
     }
+
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: rgba(0,0,0,0.2);
+        background: rgba(0, 0, 0, 0.2);
     }
 </style>
 {% endblock %}
@@ -208,9 +266,9 @@
             `;
         } else {
             month.items.forEach(item => {
-                const statusColor = item.status === 'Fechado' ? 'bg-green-100 text-green-700' : 
-                                  item.status === 'Negociação' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700';
-                
+                const statusColor = item.status === 'Fechado' ? 'bg-green-100 text-green-700' :
+                    item.status === 'Negociação' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700';
+
                 itemsListEl.innerHTML += `
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-black/5 flex items-center gap-4 hover:shadow-md transition-shadow">
                         <img src="${item.photo}" class="w-12 h-12 rounded-full object-cover border-2 border-[#F2EDE4]">
@@ -244,23 +302,30 @@
     }
 
     // Dados do donut
+    // === GRÁFICO REDONDO DINÂMICO ===
     const donutCtx = document.getElementById('revenueDonutChart').getContext('2d');
     const revenueData = JSON.parse('{{ revenue_by_type|tojson | safe }}');
     const volumeData = JSON.parse('{{ volume_by_type|tojson | safe }}');
     const totalRevenue = {{ total_revenue or 0 }};
     const totalVolume = {{ total_clients or 0 }};
-    
+
+    const colorMap = {
+        "Posicionamento": "#FF9F1C",
+        "Marca autêntica": "#FFBF69",
+        "Consultoria": "#B7F4B0",
+        "Outros serviços": "#9CA3AF"
+    };
+
+    const chartLabels = Object.keys(revenueData);
+    const backgroundColors = chartLabels.map(label => colorMap[label]);
+
     let currentDonutChart = new Chart(donutCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Posicionamento', 'Marca autêntica', 'Consultoria'],
+            labels: chartLabels,
             datasets: [{
-                data: [
-                    revenueData['Posicionamento'] || 0,
-                    revenueData['Marca autêntica'] || 0,
-                    revenueData['Consultoria'] || 0
-                ],
-                backgroundColor: ['#FF9F1C', '#FFBF69', '#B7F4B0'],
+                data: Object.values(revenueData),
+                backgroundColor: backgroundColors,
                 borderWidth: 0,
                 hoverOffset: 4
             }]
@@ -273,11 +338,11 @@
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             let value = context.raw || 0;
                             const isRevenue = document.getElementById('btnDonutRevenue').classList.contains('text-white');
                             if (isRevenue) {
-                                return context.label + ': R$ ' + value.toLocaleString('pt-BR');
+                                return context.label + ': R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                             } else {
                                 return context.label + ': ' + value + (value === 1 ? ' cliente' : ' clientes');
                             }
@@ -293,55 +358,42 @@
         const btnRevenue = document.getElementById('btnDonutRevenue');
         const totalValueEl = document.getElementById('donutTotalValue');
         const totalLabelEl = document.getElementById('donutTotalLabel');
-        
+
         const valPos = document.getElementById('val-Posicionamento');
         const valMarca = document.getElementById('val-Marca-autentica');
         const valCons = document.getElementById('val-Consultoria');
+        const valOutros = document.getElementById('val-Outros-servicos'); // Novo elemento
 
         if (type === 'volume') {
-            // Atualiza Gráfico
-            currentDonutChart.data.datasets[0].data = [
-                volumeData['Posicionamento'] || 0,
-                volumeData['Marca autêntica'] || 0,
-                volumeData['Consultoria'] || 0
-            ];
+            currentDonutChart.data.datasets[0].data = Object.values(volumeData);
             currentDonutChart.update();
 
-            // Atualiza UI
             totalValueEl.innerText = totalVolume + (totalVolume === 1 ? ' Cliente' : ' Clientes');
             totalLabelEl.innerText = 'Total Volume';
-            
+
             valPos.innerText = volumeData['Posicionamento'] || 0;
             valMarca.innerText = volumeData['Marca autêntica'] || 0;
             valCons.innerText = volumeData['Consultoria'] || 0;
+            if (valOutros) valOutros.innerText = volumeData['Outros serviços'] || 0;
 
-            // Estilo Botões
             btnVolume.classList.remove('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
             btnVolume.classList.add('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
-            
             btnRevenue.classList.remove('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
             btnRevenue.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
         } else {
-            // Atualiza Gráfico
-            currentDonutChart.data.datasets[0].data = [
-                revenueData['Posicionamento'] || 0,
-                revenueData['Marca autêntica'] || 0,
-                revenueData['Consultoria'] || 0
-            ];
+            currentDonutChart.data.datasets[0].data = Object.values(revenueData);
             currentDonutChart.update();
 
-            // Atualiza UI
             totalValueEl.innerText = 'R$ ' + totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             totalLabelEl.innerText = 'Total Faturamento';
 
             valPos.innerText = 'R$ ' + (revenueData['Posicionamento'] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             valMarca.innerText = 'R$ ' + (revenueData['Marca autêntica'] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             valCons.innerText = 'R$ ' + (revenueData['Consultoria'] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            if (valOutros) valOutros.innerText = 'R$ ' + (revenueData['Outros serviços'] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
-            // Estilo Botões
             btnRevenue.classList.remove('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-400');
             btnRevenue.classList.add('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
-            
             btnVolume.classList.remove('bg-[#2D2D2D]', 'dark:bg-[#F2EDE4]', 'text-white', 'dark:text-[#1a1a1a]');
             btnVolume.classList.add('bg-gray-100', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
         }
@@ -376,7 +428,7 @@
                     beginAtZero: true,
                     grid: { display: false },
                     ticks: {
-                        callback: function(value) {
+                        callback: function (value) {
                             return 'R$ ' + value.toLocaleString('pt-BR');
                         }
                     }
@@ -392,10 +444,10 @@
         let labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         let data = JSON.parse('{{ (monthly_revenue or [])|tojson | safe }}');
         const currentMonth = new Date().getMonth(); // 0-11
-        
+
         let filteredLabels = [];
         let filteredData = [];
-        
+
         if (period === 'year') {
             filteredLabels = labels;
             filteredData = data;
@@ -412,11 +464,11 @@
                 filteredData.push(data[idx]);
             }
         }
-        
+
         revenueChart.data.labels = filteredLabels;
         revenueChart.data.datasets[0].data = filteredData;
         revenueChart.update();
-        
+
         // Update button styles
         document.querySelectorAll('[id^="btn-chart-"]').forEach(btn => {
             btn.classList.remove('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
@@ -434,7 +486,7 @@
         const monthlyLeads = JSON.parse('{{ (monthly_leads or [])|tojson | safe }}');
         const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         const nowMonth = new Date().getMonth();
-        
+
         if (period === 'month') {
             valueEl.innerText = monthlyLeads[nowMonth] || 0;
             labelEl.innerText = 'Leads em ' + monthNames[nowMonth];
@@ -457,13 +509,13 @@
         const conversionValueEl = document.getElementById('conversion-value');
         const fechadosCountEl = document.getElementById('fechados-count');
         const perdidosCountEl = document.getElementById('perdidos-count');
-        
+
         // Atualiza estilo dos botões
         document.querySelectorAll('[id^="btn-conv-"]').forEach(btn => {
             btn.classList.remove('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
             btn.classList.add('bg-white', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
         });
-        
+
         if (type === 'all') {
             // Exibe dados gerais
             conversionValueEl.innerText = Math.round(conversionRate) + '%';
@@ -474,18 +526,20 @@
         } else {
             // Exibe dados por tipo
             const typeKey = type === 'Marca autêntica' ? 'Marca autêntica' : type;
-            const conversion = conversionByType[typeKey];
-            const details = typeDetails[typeKey];
-            
+            const conversion = conversionByType[typeKey] || 0;
+            const details = typeDetails[typeKey] || { fechados: 0, perdidos: 0 };
+
             conversionValueEl.innerText = Math.round(conversion) + '%';
             fechadosCountEl.innerText = details.fechados;
             perdidosCountEl.innerText = details.perdidos;
-            
+
             // Atualiza estilo do botão clicado
-            const btnId = type === 'Marca autêntica' ? 'btn-conv-Marca_autentica' : 'btn-conv-' + type;
+            const btnId = type === 'Marca autêntica' ? 'btn-conv-Marca_autentica' :
+                type === 'Outros serviços' ? 'btn-conv-Outros_servicos' : 'btn-conv-' + type;
             document.getElementById(btnId).classList.remove('bg-white', 'dark:bg-[#1a1a1a]', 'dark:text-gray-300');
             document.getElementById(btnId).classList.add('bg-[#2D2D2D]', 'text-white', 'dark:bg-[#F2EDE4]', 'dark:text-[#1a1a1a]');
         }
     }
+
 </script>
 {% endblock %}
