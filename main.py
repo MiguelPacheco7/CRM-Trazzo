@@ -520,7 +520,7 @@ async def delete_lead(
         raise HTTPException(status_code=404, detail="Lead not found")
 
     try:
-        # 1. Busca TODOS os quadros Kanban (em testes, as vezes o sistema cria quadros duplicados)
+        # 1. Busca os quadros do Kanban
         boards = (
             db_session.query(db.KanbanBoard)
             .filter(db.KanbanBoard.lead_id == lead_id)
@@ -540,39 +540,54 @@ async def delete_lead(
                     .all()
                 )
                 for card in cards:
-                    # Deleta arquivos físicos com segurança
+                    # Deleta arquivo físico da foto do cartão
                     if card.file_path:
                         try:
                             clean_path = card.file_path.lstrip("/")
                             if os.path.exists(clean_path):
                                 os.remove(clean_path)
-                        except Exception as e:
-                            logger.error(f"Erro ao deletar arquivo do cartão: {e}")
+                        except Exception:
+                            pass
                     db_session.delete(card)
 
+                # ORDEM DE EXECUÇÃO: Força o banco a deletar os cartões ANTES da lista
+                db_session.flush()
                 db_session.delete(lst)
+
+            # ORDEM DE EXECUÇÃO: Força o banco a deletar as listas ANTES do quadro
+            db_session.flush()
             db_session.delete(board)
 
-        # 2. Tenta apagar a foto de perfil do lead para não lotar seu servidor
+        # ORDEM DE EXECUÇÃO: Força o banco a deletar o quadro ANTES do lead
+        db_session.flush()
+
+        # 2. Deleta a foto de perfil do lead (se existir)
         if lead.photo_path:
             try:
                 clean_lead_path = lead.photo_path.lstrip("/")
                 if os.path.exists(clean_lead_path):
                     os.remove(clean_lead_path)
-            except Exception as e:
-                logger.error(f"Erro ao deletar foto do lead: {e}")
+            except Exception:
+                pass
 
-        # 3. Agora sim, deletamos o lead com 100% de segurança
+        # 3. Limpa qualquer rastro na tabela Clients (caso ele já tenha virado cliente)
+        clientes_vinculados = (
+            db_session.query(db.Client).filter(db.Client.lead_id == lead_id).all()
+        )
+        for cli in clientes_vinculados:
+            db_session.delete(cli)
+        db_session.flush()
+
+        # 4. Finalmente, com todos os dependentes apagados na ordem certa, deletamos o Lead!
         db_session.delete(lead)
         db_session.commit()
 
     except Exception as e:
-        # Se der erro, desfaz tudo para não corromper o banco e joga o erro no log
         db_session.rollback()
         logger.error(f"ERRO FATAL AO DELETAR LEAD {lead_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Erro interno ao deletar.")
 
-    # Redireciona de volta para onde o usuário estava
+    # Redireciona de volta
     referer = request.headers.get("referer")
     if referer and "/clientes" in referer:
         return RedirectResponse(url="/clientes", status_code=303)
