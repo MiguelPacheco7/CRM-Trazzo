@@ -519,6 +519,40 @@ async def delete_lead(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
 
+    # 1. Busca o quadro Kanban associado a este lead
+    board = (
+        db_session.query(db.KanbanBoard)
+        .filter(db.KanbanBoard.lead_id == lead_id)
+        .first()
+    )
+
+    if board:
+        # 2. Busca todas as listas do quadro
+        lists = (
+            db_session.query(db.KanbanList)
+            .filter(db.KanbanList.board_id == board.id)
+            .all()
+        )
+        for lst in lists:
+            # 3. Busca todos os cartões da lista
+            cards = (
+                db_session.query(db.KanbanCard)
+                .filter(db.KanbanCard.list_id == lst.id)
+                .all()
+            )
+            for card in cards:
+                # 4. Deleta arquivos físicos vinculados ao cartão para não lotar o servidor
+                if card.file_path and os.path.exists(card.file_path.lstrip("/")):
+                    os.remove(card.file_path.lstrip("/"))
+                db_session.delete(card)
+
+            # Deleta a lista
+            db_session.delete(lst)
+
+        # Deleta o quadro
+        db_session.delete(board)
+
+    # 5. Agora que as dependências do Kanban sumiram, deletamos o lead
     db_session.delete(lead)
     db_session.commit()
 
@@ -936,13 +970,6 @@ async def reorder_kanban_cards(
 
     db_session.commit()
     return {"status": "ok"}
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.getenv("PORT", 8003))
-    uvicorn.run(app, host="0.0.0.0", port=port)
 
 
 @app.post("/cliente/{lead_id}/kanban/reorder-lists")
