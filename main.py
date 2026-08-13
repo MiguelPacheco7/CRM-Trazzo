@@ -519,42 +519,58 @@ async def delete_lead(
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
 
-    # 1. Busca o quadro Kanban associado a este lead
-    board = (
-        db_session.query(db.KanbanBoard)
-        .filter(db.KanbanBoard.lead_id == lead_id)
-        .first()
-    )
-
-    if board:
-        # 2. Busca todas as listas do quadro
-        lists = (
-            db_session.query(db.KanbanList)
-            .filter(db.KanbanList.board_id == board.id)
+    try:
+        # 1. Busca TODOS os quadros Kanban (em testes, as vezes o sistema cria quadros duplicados)
+        boards = (
+            db_session.query(db.KanbanBoard)
+            .filter(db.KanbanBoard.lead_id == lead_id)
             .all()
         )
-        for lst in lists:
-            # 3. Busca todos os cartões da lista
-            cards = (
-                db_session.query(db.KanbanCard)
-                .filter(db.KanbanCard.list_id == lst.id)
+
+        for board in boards:
+            lists = (
+                db_session.query(db.KanbanList)
+                .filter(db.KanbanList.board_id == board.id)
                 .all()
             )
-            for card in cards:
-                # 4. Deleta arquivos físicos vinculados ao cartão para não lotar o servidor
-                if card.file_path and os.path.exists(card.file_path.lstrip("/")):
-                    os.remove(card.file_path.lstrip("/"))
-                db_session.delete(card)
+            for lst in lists:
+                cards = (
+                    db_session.query(db.KanbanCard)
+                    .filter(db.KanbanCard.list_id == lst.id)
+                    .all()
+                )
+                for card in cards:
+                    # Deleta arquivos físicos com segurança
+                    if card.file_path:
+                        try:
+                            clean_path = card.file_path.lstrip("/")
+                            if os.path.exists(clean_path):
+                                os.remove(clean_path)
+                        except Exception as e:
+                            logger.error(f"Erro ao deletar arquivo do cartão: {e}")
+                    db_session.delete(card)
 
-            # Deleta a lista
-            db_session.delete(lst)
+                db_session.delete(lst)
+            db_session.delete(board)
 
-        # Deleta o quadro
-        db_session.delete(board)
+        # 2. Tenta apagar a foto de perfil do lead para não lotar seu servidor
+        if lead.photo_path:
+            try:
+                clean_lead_path = lead.photo_path.lstrip("/")
+                if os.path.exists(clean_lead_path):
+                    os.remove(clean_lead_path)
+            except Exception as e:
+                logger.error(f"Erro ao deletar foto do lead: {e}")
 
-    # 5. Agora que as dependências do Kanban sumiram, deletamos o lead
-    db_session.delete(lead)
-    db_session.commit()
+        # 3. Agora sim, deletamos o lead com 100% de segurança
+        db_session.delete(lead)
+        db_session.commit()
+
+    except Exception as e:
+        # Se der erro, desfaz tudo para não corromper o banco e joga o erro no log
+        db_session.rollback()
+        logger.error(f"ERRO FATAL AO DELETAR LEAD {lead_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erro interno ao deletar.")
 
     # Redireciona de volta para onde o usuário estava
     referer = request.headers.get("referer")
