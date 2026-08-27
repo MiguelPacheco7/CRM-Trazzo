@@ -405,12 +405,23 @@ async def add_lead(
     status: str = Form("Lead"),
     temperature: str = Form("Morno"),
     project_type: str = Form("Marca autêntica"),
-    value: float = Form(0.0),
+    value: str = Form("0"),  # <-- Modificado para receber texto (str)
     photo: UploadFile = File(None),
     db_session: Session = Depends(get_db),
     user: str = Depends(get_current_user),
 ):
     photo_path = await save_photo(photo)
+
+    # --- TRATAMENTO DO VALOR FINANCEIRO ---
+    # 1. Remove os pontos de milhar
+    # 2. Troca a vírgula decimal por ponto
+    valor_limpo = value.replace(".", "").replace(",", ".")
+    try:
+        valor_float = float(valor_limpo)
+    except ValueError:
+        valor_float = 0.0
+    # --------------------------------------
+
     new_lead = db.Lead(
         name=name,
         company=company,
@@ -419,7 +430,7 @@ async def add_lead(
         status=status,
         temperature=temperature,
         project_type=project_type,
-        value=value,
+        value=valor_float,  # <-- Salva o valor convertido corretamente
         photo_path=photo_path,
     )
     db_session.add(new_lead)
@@ -438,7 +449,7 @@ async def update_lead(
     status: str = Form(None),
     temperature: str = Form(None),
     project_type: str = Form(None),
-    value: float = Form(None),
+    value: str = Form(None),
     problems: str = Form(None),
     solutions: str = Form(None),
     observations: str = Form(None),
@@ -471,7 +482,11 @@ async def update_lead(
     if project_type is not None:
         lead.project_type = project_type
     if value is not None:
-        lead.value = value
+        valor_limpo = value.replace(".", "").replace(",", ".")
+    try:
+        lead.value = float(valor_limpo)
+    except ValueError:
+        pass
     if problems is not None:
         lead.problems = problems
     if solutions is not None:

@@ -298,7 +298,7 @@
                 <div>
                     <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Valor Estimado
                         (R$)</label>
-                    <input type="number" step="0.01" name="value" id="edit_value"
+                    <input type="text" name="value" id="edit_value" oninput="formatarMoeda(this)" placeholder="0,00"
                         class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
                 </div>
             </div>
@@ -371,6 +371,14 @@
     let deleteTimer = null;
     let countdownInterval = null;
     let currentDeleteId = null;
+
+    function formatarMoeda(input) {
+        let valor = input.value.replace(/\D/g, ""); // Remove tudo que não é dígito
+        valor = (valor / 100).toFixed(2) + ""; // Transforma em decimal
+        valor = valor.replace(".", ",");
+        valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Adiciona pontos de milhar
+        input.value = valor;
+    }
 
     function openEditLeadModal(btn) {
         const data = btn.dataset;
