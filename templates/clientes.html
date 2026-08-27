@@ -213,40 +213,40 @@
                 <div>
                     <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Valor do Projeto
                         (R$)</label>
-                    <input type="number" step="0.01" name="value" id="edit_value"
+                    <input type="text" name="value" id="edit_value" oninput="formatarMoeda(this)" placeholder="0,00"
                         class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-5">
+                <div class="grid grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Data Início</label>
+                        <input type="date" name="start_date" id="edit_start"
+                            class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Data Fim</label>
+                        <input type="date" name="end_date" id="edit_end"
+                            class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                    </div>
+                </div>
                 <div>
-                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Data Início</label>
-                    <input type="date" name="start_date" id="edit_start"
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Atualizar Foto</label>
+                    <input type="file" name="photo" accept="image/*"
                         class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Data Fim</label>
-                    <input type="date" name="end_date" id="edit_end"
-                        class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Escopo do
+                        Projeto</label>
+                    <textarea name="scope" id="edit_scope" rows="3"
+                        class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none resize-none"></textarea>
                 </div>
-            </div>
-            <div>
-                <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Atualizar Foto</label>
-                <input type="file" name="photo" accept="image/*"
-                    class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Escopo do Projeto</label>
-                <textarea name="scope" id="edit_scope" rows="3"
-                    class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none resize-none"></textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Observações</label>
-                <textarea name="observations" id="edit_obs" rows="3"
-                    class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none resize-none"></textarea>
-            </div>
-            <button type="submit"
-                class="w-full bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] py-5 rounded-2xl font-bold text-lg mt-4 hover:opacity-90 transition-opacity shadow-lg">Salvar
-                Alterações</button>
+                <div>
+                    <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Observações</label>
+                    <textarea name="observations" id="edit_obs" rows="3"
+                        class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none resize-none"></textarea>
+                </div>
+                <button type="submit"
+                    class="w-full bg-[#2D2D2D] dark:bg-[#F2EDE4] text-white dark:text-[#1a1a1a] py-5 rounded-2xl font-bold text-lg mt-4 hover:opacity-90 transition-opacity shadow-lg">Salvar
+                    Alterações</button>
         </form>
     </div>
 </div>
@@ -258,6 +258,14 @@
     let deleteTimer = null;
     let countdownInterval = null;
     let currentDeleteId = null;
+
+    function formatarMoeda(input) {
+        let valor = input.value.replace(/\D/g, ""); // Remove tudo que não é dígito
+        valor = (valor / 100).toFixed(2) + ""; // Transforma em decimal
+        valor = valor.replace(".", ",");
+        valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); // Adiciona pontos de milhar
+        input.value = valor;
+    }
 
     function openEditModal(btn) {
         const data = btn.dataset;
@@ -291,7 +299,10 @@
         updateFinalProjectType(); // Atualiza o input invisível que vai pro banco
         // -------------------------------------
 
-        document.getElementById('edit_value').value = data.value;
+        let rawValue = parseFloat(data.value || 0).toFixed(2);
+        let formattedValue = rawValue.replace(".", ",");
+        formattedValue = formattedValue.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        document.getElementById('edit_value').value = formattedValue;
         document.getElementById('edit_scope').value = data.scope === 'None' ? '' : data.scope;
         document.getElementById('edit_obs').value = data.obs === 'None' ? '' : data.obs;
         document.getElementById('edit_start').value = data.start;

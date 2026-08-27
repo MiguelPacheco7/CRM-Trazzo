@@ -190,7 +190,7 @@
                 <div>
                     <label class="block text-sm font-bold mb-2 ml-1 text-black dark:text-white">Valor Estimado
                         (R$)</label>
-                    <input type="number" step="0.01" name="value" placeholder="20000.00"
+                    <input type="text" name="value" placeholder="0,00" oninput="formatarMoeda(this)"
                         class="w-full bg-white dark:bg-[#2D2D2D] dark:text-white rounded-2xl px-5 py-4 border-none shadow-inner focus:ring-2 focus:ring-[#2D2D2D] dark:focus:ring-[#F2EDE4] outline-none">
                 </div>
             </div>
@@ -409,7 +409,11 @@
         }
         updateFinalEditProjectType();
         // ------------------------------------------------
-        document.getElementById('edit_value').value = data.value;
+        // Converte o valor numérico cru do banco para o padrão brasileiro visual (ex: 20.000,00)
+        let rawValue = parseFloat(data.value || 0).toFixed(2);
+        let formattedValue = rawValue.replace(".", ",");
+        formattedValue = formattedValue.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        document.getElementById('edit_value').value = formattedValue;
         document.getElementById('edit_problems').value = data.problems === 'None' ? '' : data.problems;
         document.getElementById('edit_solutions').value = data.solutions === 'None' ? '' : data.solutions;
         document.getElementById('edit_observations').value = data.obs === 'None' ? '' : data.obs;
