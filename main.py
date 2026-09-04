@@ -483,10 +483,10 @@ async def update_lead(
         lead.project_type = project_type
     if value is not None:
         valor_limpo = value.replace(".", "").replace(",", ".")
-    try:
-        lead.value = float(valor_limpo)
-    except ValueError:
-        pass
+        try:
+            lead.value = float(valor_limpo)
+        except ValueError:
+            pass
     if problems is not None:
         lead.problems = problems
     if solutions is not None:
